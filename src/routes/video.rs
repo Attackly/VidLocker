@@ -13,7 +13,6 @@ pub struct VideoRequest {
 
 #[debug_handler]
 pub async fn simple_download_handler(Json(payload): Json<VideoRequest>) -> Json<DefaultResponse> {
-    // TODO Check if URL is valid
     match Url::parse(&payload.url) {
         Ok(_) => {}
         Err(_) => {
