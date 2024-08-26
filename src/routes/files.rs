@@ -1,0 +1,30 @@
+use axum::Json;
+use axum::response::IntoResponse;
+use axum::response::Response;
+use serde::Deserialize;
+use crate::func::files::dir_create;
+use crate::routes::responses::DefaultResponse;
+use axum::http::StatusCode;
+
+#[derive(Deserialize)]
+pub struct PathRequest {
+    path: String
+}
+
+pub async fn create_dir_handler(Json(payload): Json<PathRequest>) -> Response {
+
+    match dir_create(payload.path).await {
+        Ok(_) => {
+            (StatusCode::OK, Json(DefaultResponse{ status: 200, message: "Path has been created".to_string()})).into_response()
+        }
+        Err(1) => {
+            (StatusCode::BAD_REQUEST, Json(DefaultResponse{status:403, message: "Illegal Path".to_string()})).into_response()
+        }
+        Err(2) => {
+            (StatusCode::BAD_REQUEST, Json(DefaultResponse{status:403, message: "Error Creating Path".to_string()})).into_response()
+        }
+        _ => {
+            (StatusCode::BAD_REQUEST, Json(DefaultResponse{status:500, message: "This error cant appear".to_string()})).into_response()
+        }
+    }
+}
