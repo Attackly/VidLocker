@@ -2,8 +2,8 @@ use axum::Json;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use serde::Deserialize;
-use crate::func::files::dir_create;
-use crate::routes::responses::DefaultResponse;
+use crate::func::files::{dir_create, get_dir_size};
+use crate::routes::responses::{DefaultResponse, DirSizeResponse};
 use axum::http::StatusCode;
 
 #[derive(Deserialize)]
@@ -25,6 +25,17 @@ pub async fn create_dir_handler(Json(payload): Json<PathRequest>) -> Response {
         }
         _ => {
             (StatusCode::BAD_REQUEST, Json(DefaultResponse{status:500, message: "This error cant appear".to_string()})).into_response()
+        }
+    }
+}
+
+pub async fn get_single_dir_size_handler(Json(payload): Json<PathRequest>) -> Response {
+    match get_dir_size(payload.path).await {
+        None => {
+            (StatusCode::BAD_REQUEST, Json(DefaultResponse{status:400, message: "Dir does not exist or is invalid / offlimits for you".to_string()})).into_response()
+        }
+        Some(size) => {
+            (StatusCode::OK, Json(DirSizeResponse{size})).into_response()
         }
     }
 }
