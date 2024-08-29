@@ -39,6 +39,23 @@ pub async fn dir_delete<'a>(path: String) -> Result<&'a str, u8> {
     }
 }
 
+pub async fn get_dir_size(path: String) -> Option<u64> {
+    if path.find("..").is_some() {
+        return None
+    }
+
+    let p = PathBuf::from(path);
+    match fs_extra::dir::get_size(p) {
+        Ok(s) => Some(s),
+        Err(_) => {
+            None
+        }
+    }
+}
+
+
+
+
 
 #[tokio::test]
 async fn test_dir_creation() {
@@ -49,5 +66,13 @@ async fn test_dir_creation() {
 async fn test_dir_deletion() {
     if PathBuf::from("TEST/RUST").exists() {
         assert!(dir_delete("TEST/RUST".to_string()).await.is_ok())
+    }
+}
+
+#[tokio::test]
+async fn test_get_dir_size() {
+    if PathBuf::from("target").exists() {
+        assert!(get_dir_size("target".to_string()).await.is_some());
+        assert!(get_dir_size("..".to_string()).await.is_none());
     }
 }
