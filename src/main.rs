@@ -10,9 +10,20 @@ use axum::{
 use routes::misc::check_system_handler;
 use crate::routes::files::{create_dir_handler, get_single_dir_size_handler};
 use crate::routes::video::simple_download_handler;
+use std::{fs, io};
+
 
 #[tokio::main]
 async fn main() {
+
+    // Launch preperations.
+    match fs::create_dir("output") {
+        Ok(_) => (),
+        Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
+            ();
+        }
+        Err(e) => panic!("There was an error! {e}")
+    }
 
     let app = Router::new()
         .route("/test", get(check_system_handler))
