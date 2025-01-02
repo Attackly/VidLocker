@@ -7,7 +7,8 @@ use crate::routes::responses::DefaultResponse;
 #[debug_handler]
 /// # check_system_handler
 /// THis function will send back information about the App
-///
+/// TODO make reporting better. 
+/// Mazbe return the Config. 
 pub async fn check_system_handler() -> Json<DefaultResponse> {
     let resp = DefaultResponse {
         status: StatusCode::OK.as_u16(),
