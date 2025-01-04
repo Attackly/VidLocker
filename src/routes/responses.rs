@@ -10,3 +10,9 @@ pub struct DefaultResponse {
 pub struct DirSizeResponse {
     pub(crate) size: u64
 }
+
+#[derive(Serialize)]
+pub struct ModeResponse {
+    pub(crate) status: u16,
+    pub(crate) mode: String
+}
