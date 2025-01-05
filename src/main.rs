@@ -13,7 +13,7 @@ use crate::routes::video::simple_download_handler;
 use crate::func::preperations::create_output_dir;
 use crate::routes::yt::title_handler;
 use tower_http::cors::{Any, CorsLayer};
-
+use axum::http::Method;
 #[tokio::main]
 async fn main() {    
     create_output_dir();
@@ -21,8 +21,10 @@ async fn main() {
 
 
     let cors = CorsLayer::new()
-
-    .allow_origin(Any);
+    .allow_origin(Any)
+    .allow_origin(Any) // Allow any origin
+    .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE]) // Specify allowed methods
+    .allow_headers([axum::http::header::CONTENT_TYPE]); // Allow specific headers
 
 
     let app = Router::new()
@@ -30,8 +32,8 @@ async fn main() {
         .route("/api/downloadVideo", post(simple_download_handler))
         .route("/api/files/size", post(get_single_dir_size_handler))
         .route("/api/files/dir_delete", delete(dir_delete_handler))
-        .route("/api/yt/mode", get(mode_handler))
-        .route("/api/yt/getTitle", get(title_handler))
+        .route("/api/yt/mode", get(mode_handler)).layer(cors.clone())
+        .route("/api/yt/getTitle", post(title_handler)).layer(cors.clone())
         .route("/api/files/dir_create", put(create_dir_handler))
         .layer(cors);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

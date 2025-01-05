@@ -1,32 +1,21 @@
-use std::{collections::HashMap, env};
-use chrono::{NaiveDateTime, Utc};
-use serde::{Deserialize,Serialize};
+use std::env;
+use chrono::{DateTime, Utc};
 use reqwest;
+use serde::Serialize;
+use serde_json::Value;
 
-#[derive(Debug)]
+
+
+
+#[derive(Debug, Serialize)]
 pub struct Video {
     viewkey: String,
-    published_at: NaiveDateTime,
+    published_at: DateTime<Utc>,
     channel_id: String,
     title: String,
     description: String,
     channel_name: String,
     tags: Vec<String>,
-}
-
-#[derive(Serialize,Deserialize, Debug)]
-struct YouTubeApiResponse {
-    items: Vec<YouTubeVideoItem>,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-struct YouTubeVideoItem {
-    snippet: VideoSnippet,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-struct VideoSnippet {
-    title: String,
 }
 
 
@@ -54,25 +43,58 @@ pub async fn get_title(viewkey: &str) -> Option<Video> {
         viewkey, key
     );
 
-    let res = reqwest::get(&url).await.unwrap()
-        .json::<YouTubeApiResponse>().await.unwrap();
-    
-    println!("{:?}", res);  
+    let response = reqwest::get(&url).await.unwrap();
 
-    if let Some(first_item) = res.items.get(0) {
-        println!("Video Title: {}", first_item.snippet.title);
-    } else {
-        println!("No video found for the given ID");
+    // Parse the response as a dynamic JSON
+    let json: Value = response.json().await.unwrap();
+    println!("{:?}", json);
+
+      // Access specific fields dynamically (example: video title)
+      if let Some(items) = json.get("items") {
+        if let Some(first_item) = items.get(0) {
+            if let Some(snippet) = first_item.get("snippet") {
+                if let Some(title) = snippet.get("title") {
+                    println!("Video Title: {}", title);
+                }
+            }
+        }
     }
+    println!("{:?}", json["items"][0]["snippet"]["title"]);  
+    println!("{:?}", json["items"][0]["snippet"]["channelId"]);  
+
+
+    println!("{:?}", json["items"][0]["snippet"]["publishedAt"]);
+    let parsed_date = DateTime::parse_from_rfc3339(json["items"][0]["snippet"]["publishedAt"].as_str().unwrap()).unwrap().with_timezone(&Utc);
+
+    let tags: Vec<String> = json["items"][0]["snippet"]["tags"]
+        .as_array()
+        .unwrap_or(&vec![]) // Use an empty vector if tags are missing or null
+        .iter()
+        .map(|tag| tag.as_str().unwrap_or("").to_string()) // Handle potential non-string tags
+        .collect();
+
+        let title = json["items"][0]["snippet"]["title"]
+        .as_str()
+        .map(|t| {
+            t.replace(r#"\""#, r#"""#)
+        })
+        .unwrap_or_else(|| "Default Title".to_string());
+
+        let channel_name = json["items"][0]["snippet"]["channelTitle"]
+        .as_str()
+        .map(|t| {
+            t.replace(r#"\""#, r#"""#)
+        })
+        .unwrap_or_else(|| "Default Title".to_string());
 
     Some(Video {
         viewkey: viewkey.to_owned(),
-        published_at: Utc::now().naive_utc(),
-        channel_id: "".to_owned(),
-        title: "".to_owned(),
-        description: "".to_owned(),
-        channel_name: "".to_owned(),
-        tags: vec![]
+        published_at: parsed_date,
+        channel_id: json["items"][0]["snippet"]["channelId"].to_string(),
+        title: title,
+        description: json["items"][0]["snippet"]["description"].to_string(),
+        channel_name: channel_name,
+        tags: tags,
     })
     
 }
