@@ -3,11 +3,17 @@ use serde::{Deserialize, Serialize};
 use super::responses::ModeResponse;
 use crate::func::yt::{get_mode, get_title};
 use axum::http::StatusCode;
-
+use crate::func::yt::Video;
 
 #[derive(Serialize, Deserialize)]
 pub struct VideoRequest {
     url: String
+}
+
+#[derive(Serialize)]
+pub struct VideoResponse {
+    status: u16,
+    video: Option<Video>
 }
 
 
@@ -20,9 +26,16 @@ pub async fn mode_handler() -> Json<ModeResponse> {
 }
 
 #[axum_macros::debug_handler]
-pub async fn title_handler(Json(payload): Json<VideoRequest>) -> Json<ModeResponse> {
-    get_title(&payload.url).await;
-
-    Json(ModeResponse { status: StatusCode::OK.as_u16(), mode: "api".to_string() })
+pub async fn title_handler(Json(payload): Json<VideoRequest>) -> Json<VideoResponse> {
+    if payload.url.len() != 11 {
+        return Json(VideoResponse { status: StatusCode::BAD_REQUEST.as_u16(), video: None });
+    }
+    
+    match get_title(&payload.url).await {
+        Some(video) => return Json(VideoResponse { status: StatusCode::OK.as_u16(), video: Some(video) }),
+        None => {
+            return Json(VideoResponse { status: StatusCode::NOT_FOUND.as_u16(), video: None });
+        }
+    };
 }
 
