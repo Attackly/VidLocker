@@ -20,6 +20,7 @@ async fn main() {
     prepare_database().await;
 
 
+    // create_download_threads();
     let cors = CorsLayer::new()
     .allow_origin(Any)
     .allow_origin(Any) // Allow any origin
