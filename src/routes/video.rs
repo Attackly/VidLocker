@@ -13,10 +13,12 @@ pub struct VideoRequest {
 
 #[debug_handler]
 pub async fn simple_download_handler(Json(payload): Json<VideoRequest>) -> Json<DefaultResponse> {
-    match Url::parse(&payload.url) {
-        Ok(_) => {}
-        Err(_) => {
-            return Json(DefaultResponse{status: StatusCode::BAD_REQUEST.as_u16(), message: "The Url is invalid".to_string()});
+    if payload.url.len() != 11 {
+        match Url::parse(&payload.url) {
+            Ok(_) => {}
+            Err(_) => {
+                return Json(DefaultResponse{status: StatusCode::BAD_REQUEST.as_u16(), message: "The Url is invalid".to_string()});
+            }
         }
     }
 
