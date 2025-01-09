@@ -1,11 +1,8 @@
-use std::env;
 use chrono::{DateTime, Utc};
 use reqwest;
 use serde::Serialize;
 use serde_json::Value;
-
-
-
+use std::{env, process::Command};
 
 #[derive(Debug, Serialize)]
 pub struct Video {
@@ -18,26 +15,45 @@ pub struct Video {
     tags: Vec<String>,
 }
 
-
 pub fn get_mode() -> String {
     if env::var("YT_API_KEY").is_err() {
-         "fallback".to_owned()
-    }
-    else {
+        "fallback".to_owned()
+    } else {
         "api".to_owned()
     }
 }
 
-
 pub async fn get_title(viewkey: &str) -> Option<Video> {
-    
-    let key = match env::var("YT_API_KEY") {
-        Ok(key) => key,
-        Err(_) => {
-            return None;
-        }
+    match env::var("YT_API_KEY") {
+        Ok(key) => return get_title_api(viewkey, key).await,
+        Err(_) => return get_title_fallback(viewkey),
     };
+}
 
+fn get_title_fallback(viewkey: &str) -> Option<Video> {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(format!("yt-dlp -J {} | jq '.title'", viewkey))
+        .output()
+        .expect("Failed to execute command");
+
+    println!("Output: {}", String::from_utf8_lossy(&output.stdout));
+
+    let title = String::from_utf8(output.stdout).unwrap();
+    let title = title.trim().trim_matches('"').to_string();
+
+    Some(Video {
+        viewkey: viewkey.to_owned(),
+        published_at: Utc::now(),
+        channel_id: "".to_owned(),
+        title,
+        description: "".to_owned(),
+        channel_name: "".to_owned(),
+        tags: vec![],
+    })
+}
+
+async fn get_title_api(viewkey: &str, key: String) -> Option<Video> {
     let url = format!(
         "https://www.googleapis.com/youtube/v3/videos?id={}&part=snippet&key={}",
         viewkey, key
@@ -49,8 +65,8 @@ pub async fn get_title(viewkey: &str) -> Option<Video> {
     let json: Value = response.json().await.unwrap();
     println!("{:?}", json);
 
-      // Access specific fields dynamically (example: video title)
-      if let Some(items) = json.get("items") {
+    // Access specific fields dynamically (example: video title)
+    if let Some(items) = json.get("items") {
         if let Some(first_item) = items.get(0) {
             if let Some(snippet) = first_item.get("snippet") {
                 if let Some(title) = snippet.get("title") {
@@ -59,12 +75,14 @@ pub async fn get_title(viewkey: &str) -> Option<Video> {
             }
         }
     }
-    println!("{:?}", json["items"][0]["snippet"]["title"]);  
-    println!("{:?}", json["items"][0]["snippet"]["channelId"]);  
-
+    println!("{:?}", json["items"][0]["snippet"]["title"]);
+    println!("{:?}", json["items"][0]["snippet"]["channelId"]);
 
     println!("{:?}", json["items"][0]["snippet"]["publishedAt"]);
-    let parsed_date = DateTime::parse_from_rfc3339(json["items"][0]["snippet"]["publishedAt"].as_str().unwrap()).unwrap().with_timezone(&Utc);
+    let parsed_date =
+        DateTime::parse_from_rfc3339(json["items"][0]["snippet"]["publishedAt"].as_str().unwrap())
+            .unwrap()
+            .with_timezone(&Utc);
 
     let tags: Vec<String> = json["items"][0]["snippet"]["tags"]
         .as_array()
@@ -73,18 +91,14 @@ pub async fn get_title(viewkey: &str) -> Option<Video> {
         .map(|tag| tag.as_str().unwrap_or("").to_string()) // Handle potential non-string tags
         .collect();
 
-        let title = json["items"][0]["snippet"]["title"]
+    let title = json["items"][0]["snippet"]["title"]
         .as_str()
-        .map(|t| {
-            t.replace(r#"\""#, r#"""#)
-        })
+        .map(|t| t.replace(r#"\""#, r#"""#))
         .unwrap_or_else(|| "Default Title".to_string());
 
-        let channel_name = json["items"][0]["snippet"]["channelTitle"]
+    let channel_name = json["items"][0]["snippet"]["channelTitle"]
         .as_str()
-        .map(|t| {
-            t.replace(r#"\""#, r#"""#)
-        })
+        .map(|t| t.replace(r#"\""#, r#"""#))
         .unwrap_or_else(|| "Default Title".to_string());
 
     Some(Video {
@@ -96,7 +110,6 @@ pub async fn get_title(viewkey: &str) -> Option<Video> {
         channel_name: channel_name,
         tags: tags,
     })
-    
 }
 
 /*
@@ -107,3 +120,9 @@ async fn test_get_title() {
     println!("{:?}", res)
 }
 */
+
+#[tokio::test]
+async fn get_title_test() {
+    let res = get_title_fallback("dQw4w9WgXcQ").unwrap();
+    println!("{:?}", res)
+}
