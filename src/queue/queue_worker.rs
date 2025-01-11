@@ -8,7 +8,8 @@ pub async fn queue_worker(id: u32, pool: PgPool) {
     loop {
         match get_task(&pool).await {
             Some((task_id, url)) => {
-                download_video_simple_ydl(url);
+                print!("Found a Task. Will download. task with id: {task_id}");
+                download_video_simple_ydl(url).await;
 
                 mark_task_completed(&pool, task_id)
                     .await
@@ -21,6 +22,7 @@ pub async fn queue_worker(id: u32, pool: PgPool) {
         }
     }
 }
+
 async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
     let mut tx: Transaction<'_, Postgres> =
         pool.begin().await.expect("Failed to begin transaction");
@@ -67,13 +69,10 @@ async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
 }
 
 async fn mark_task_completed(pool: &PgPool, task_id: i32) -> Result<(), sqlx::Error> {
-    sqlx::query!(
-        "UPDATE queue SET task_status = 'completed' WHERE id = $1",
-        task_id
-    )
-    .execute(pool)
-    .await
-    .expect("Failed to mark task as completed");
+    sqlx::query!("DELETE FROM queue WHERE id = $1", task_id)
+        .execute(pool)
+        .await
+        .expect("Failed to mark task as completed");
 
     // Remove the entry from the queue. And Complete videos entry
     Ok(())

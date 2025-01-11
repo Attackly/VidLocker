@@ -1,12 +1,10 @@
-use crate::func::video::download_video_simple_ydl;
-use crate::func::yt::get_title;
+use crate::func::video::{download_video_simple_ydl, write_db_entry};
 use crate::routes::responses::DefaultResponse;
 use axum::http::StatusCode;
 use axum::Json;
 use axum_macros::debug_handler;
 use serde::Deserialize;
 use url::Url;
-
 #[derive(Deserialize)]
 pub struct VideoRequest {
     url: String,
@@ -26,7 +24,13 @@ pub async fn simple_download_handler(Json(payload): Json<VideoRequest>) -> Json<
         }
     }
 
-    download_video_simple_ydl(payload.url);
+    tokio::spawn(async move {
+        if std::env::var("MODE").unwrap() == "queue" {
+            write_db_entry(&payload.url).await;
+        } else {
+            download_video_simple_ydl(payload.url).await;
+        }
+    });
 
     Json(DefaultResponse {
         status: 200,

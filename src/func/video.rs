@@ -7,8 +7,6 @@ use std::thread;
 use youtube_dl::YoutubeDl; // Assuming you're using the youtube-dl crate.
 
 pub async fn download_video_simple_ydl(link: String) {
-    write_db_entry(&link).await;
-
     if env::var("MODE").unwrap() != "queue" {
         let folder_path = "/home/jan/Projects/VidLocker/output";
 
@@ -19,14 +17,13 @@ pub async fn download_video_simple_ydl(link: String) {
                 Err(e) => eprintln!("Failed to download video: {}", e),
             },
         );
-
         return;
     }
 
     // sqlx::query!("INSERT INTO queue (video_id) VALUES ()")
 }
 
-async fn write_db_entry(link: &String) {
+pub async fn write_db_entry(link: &String) {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = PgPoolOptions::new()
         .max_connections(1)
@@ -43,9 +40,7 @@ async fn write_db_entry(link: &String) {
     let json_output = String::from_utf8(output.stdout).expect("Invalid UTF-8 in command output");
     let json_value: Value = serde_json::from_str(&json_output).expect("Failed to parse JSON");
 
-    println!("{:?}", json_value.get("id").unwrap().to_string());
-    let res =
-        sqlx::query!(
+    let res = sqlx::query!(
         "INSERT INTO videos (viewkey, title, description, url, path) VALUES ($1, $2, $3, $4, $5) RETURNING id;",
         json_value.get("id").unwrap().to_string().replace("\"", ""),
         json_value.get("title").unwrap().to_string().replace("\"",""),
@@ -53,9 +48,9 @@ async fn write_db_entry(link: &String) {
         link,
         "/"
     )
-        .fetch_one(&pool)
-        .await
-        .unwrap();
+    .fetch_one(&pool)
+    .await
+    .unwrap();
 
     sqlx::query!("INSERT INTO queue (video_id) VALUES ($1)", res.id)
         .execute(&pool)
