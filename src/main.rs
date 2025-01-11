@@ -43,7 +43,7 @@ async fn main() {
             queue_worker(i, pool).await;
         });
         handles.push(handle);
-        sleep(Duration::from_secs(idle_time)).await;
+        sleep(Duration::from_secs((idle_time / handle_count) as u64)).await;
     }
 
     // create_download_threads();

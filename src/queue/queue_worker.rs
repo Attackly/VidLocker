@@ -72,7 +72,9 @@ async fn mark_task_completed(pool: &PgPool, task_id: i32) -> Result<(), sqlx::Er
         task_id
     )
     .execute(pool)
-    .await?;
+    .await
+    .expect("Failed to mark task as completed");
 
+    // Remove the entry from the queue. And Complete videos entry
     Ok(())
 }
