@@ -1,0 +1,22 @@
+services:
+  vidlocker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL="<your_pgsql_connection_string>"
+    ports:
+      - 3000:8080
+
+  db:
+    image: postgres:17.2-alpine
+    environment:
+      - POSTGRES_USER="vidlocker"
+      - POSTGRES_PASSWORD="<your_pgsql_password_that_should_be_secret_and_secure>"
+      - POSTGRES_DB="vidlocker"
+    ports:
+      - 5432:5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes: db_dat
