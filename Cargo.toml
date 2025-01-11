@@ -11,7 +11,7 @@ axum-macros = "0.4.1"
 sqlx = { version = "0.8.0", features = ["runtime-tokio-native-tls", "postgres"]}
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
-tower-sessions = "0.13.0"
+tower-sessions = "0.14.0"
 time = "0.3.34"
 rand = "0.8.5"
 argon2 = "0.5.3"
