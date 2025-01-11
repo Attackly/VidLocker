@@ -8,3 +8,4 @@ output/
 .env
 example.json
 exmple.json
+docker-compose.yaml

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE queue SET task_status = 'in_progress' WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "49f888eb6ec1eefeaa90d02b9889c5da6e04a534d41153dd5318ee00c5870a5d"
+}
