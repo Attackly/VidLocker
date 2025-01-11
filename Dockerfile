@@ -2,17 +2,20 @@
 FROM rust:1.84-alpine AS builder
 
 # Install necessary build dependencies
-RUN apk add --no-cache musl-dev libc-dev gcc openssl openssl-dev libssl3 libcrypto3
-RUN apk add --no-cache libgcc libstdc++ bash openssl yt-dlp openssl-dev libssl3
-RUN apk add --no-cache openssl-dev make
 RUN apk add --no-cache \
-    openssl-dev \
     musl-dev \
-    gcc \
     libc-dev \
+    gcc \
+    libgcc \
+    libstdc++ \
+    openssl \
+    openssl-dev \
+    libssl3 \
+    libcrypto3 \
     make \
     bash \
-    pkgconfig
+    pkgconfig \
+    yt-dlp
 
 # Set up the environment variable to specify the OpenSSL directory (if necessary)
 ENV OPENSSL_LIB_DIR=/usr/lib
