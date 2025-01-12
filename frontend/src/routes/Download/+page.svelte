@@ -51,7 +51,7 @@
     // Function to check if API key is available
     async function checkApiKey() {
         try {
-            const response = await fetch("http://127.0.0.1:3000/api/yt/mode");
+            const response = await fetch("/api/yt/mode");
             const data = await response.json();
             console.log(data);
             if (data.mode === "api") {
@@ -70,7 +70,7 @@
     async function getYouTubeTitle() {
         if (!viewkey || !useApi) return;
 
-        const response = await fetch("http://127.0.0.1:3000/api/yt/getTitle", {
+        const response = await fetch("/api/yt/getTitle", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -95,16 +95,13 @@
     async function download_video() {
         if (!viewkey) return;
 
-        const response = await fetch(
-            "http://127.0.0.1:3000/api/downloadVideo",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: '{"url": "' + viewkey + '"}',
+        const response = await fetch("/api/downloadVideo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
             },
-        );
+            body: '{"url": "' + viewkey + '"}',
+        });
         const data = await response.json();
         console.log(data);
         if (data.status == 200) {
