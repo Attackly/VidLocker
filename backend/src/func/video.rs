@@ -1,26 +1,21 @@
 use serde_json::Value;
 use sqlx::postgres::PgPoolOptions;
-use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 use std::thread;
 use youtube_dl::YoutubeDl; // Assuming you're using the youtube-dl crate.
 
 pub async fn download_video_simple_ydl(link: String) {
-    if env::var("MODE").unwrap() != "queue" {
-        let folder_path = "/home/jan/Projects/VidLocker/output";
+    let folder_path = "./output";
 
-        // Download the video in a separate threadis_ok
-        thread::spawn(
-            move || match YoutubeDl::new(link).download_to(PathBuf::from(folder_path)) {
-                Ok(_) => println!("Video downloaded successfully to '{}'", folder_path),
-                Err(e) => eprintln!("Failed to download video: {}", e),
-            },
-        );
-        return;
-    }
-
-    // sqlx::query!("INSERT INTO queue (video_id) VALUES ()")
+    // Download the video in a separate threadis_ok
+    thread::spawn(
+        move || match YoutubeDl::new(link).download_to(PathBuf::from(folder_path)) {
+            Ok(_) => println!("Video downloaded successfully to '{}'", folder_path),
+            Err(e) => eprintln!("Failed to download video: {}", e),
+        },
+    );
+    return;
 }
 
 pub async fn write_db_entry(link: &String) {
@@ -37,8 +32,28 @@ pub async fn write_db_entry(link: &String) {
         .output()
         .expect("Failed to execute command");
 
+    if !output.status.success() {
+        eprintln!(
+            "Command failed with status: {}\nError: {}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr)
+        );
+        return;
+    }
+
     let json_output = String::from_utf8(output.stdout).expect("Invalid UTF-8 in command output");
-    let json_value: Value = serde_json::from_str(&json_output).expect("Failed to parse JSON");
+    if json_output.trim().is_empty() {
+        eprintln!("No JSON output from yt-dlp.");
+        return;
+    }
+
+    let json_value: Value = match serde_json::from_str(&json_output) {
+        Ok(value) => value,
+        Err(err) => {
+            eprintln!("Failed to parse JSON: {}\nOutput: {}", err, json_output);
+            return;
+        }
+    };
 
     let res = sqlx::query!(
         "INSERT INTO videos (viewkey, title, description, url, path) VALUES ($1, $2, $3, $4, $5) RETURNING id;",

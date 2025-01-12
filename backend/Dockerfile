@@ -14,8 +14,7 @@ RUN apk add --no-cache \
     libcrypto3 \
     make \
     bash \
-    pkgconfig \
-    yt-dlp
+    pkgconfig
 
 # Set up the environment variable to specify the OpenSSL directory (if necessary)
 ENV OPENSSL_LIB_DIR=/usr/lib
@@ -32,12 +31,12 @@ RUN cargo build --release
 
 # Stage 2: Create a minimal runtime image
 FROM alpine:latest
+RUN apk add yt-dlp
 
 # Install runtime dependencies
 
 # Set the working directory
 WORKDIR /app
-
 # Copy the compiled binary from the builder stage
 COPY --from=builder /app/target/release/VidLocker /app/vidlocker
 
