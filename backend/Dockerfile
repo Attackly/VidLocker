@@ -26,7 +26,6 @@ WORKDIR /app
 COPY ./backend .
 ENV SQLX_OFFLINE=true
 # Build the application in release mode
-RUN cargo install sqlx-cli
 RUN cargo build --release
 
 # Stage 2: Create a minimal runtime image
@@ -41,7 +40,7 @@ WORKDIR /app
 COPY --from=builder /app/target/release/VidLocker /app/vidlocker
 
 # Expose necessary ports
-EXPOSE 3000
+EXPOSE 3001
 
 # Run the application
 CMD ["./vidlocker"]
