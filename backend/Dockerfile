@@ -23,7 +23,7 @@ ENV OPENSSL_INCLUDE_DIR=/usr/include
 WORKDIR /app
 
 # Copy the source code
-COPY . .
+COPY ./backend .
 ENV SQLX_OFFLINE=true
 # Build the application in release mode
 RUN cargo install sqlx-cli
