@@ -64,7 +64,7 @@ async fn main() {
         .layer(cors.clone())
         .route("/api/files/dir_create", put(create_dir_handler))
         .layer(cors);
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
 
     axum::serve(listener, app).await.unwrap()
 }
