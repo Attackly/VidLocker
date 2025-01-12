@@ -25,7 +25,7 @@ pub async fn simple_download_handler(Json(payload): Json<VideoRequest>) -> Json<
     }
 
     tokio::spawn(async move {
-        if std::env::var("MODE").unwrap() == "queue" {
+        if std::env::var("MODE").unwrap_or("direct".to_string()) == "queue" {
             write_db_entry(&payload.url).await;
         } else {
             download_video_simple_ydl(payload.url).await;

@@ -1,11 +1,29 @@
-/target
-# Default ignored files
-/shelf/
-/workspace.xml
+#backend
+backend/target
 # Editor-based HTTP Client requests
-/httpRequests/
-output/
-.env
-example.json
-exmple.json
+backend/output/
+backend/.env
+backend/example.json
 docker-compose.yaml
+
+frontend/node_modules
+frontend/bak
+# Output
+frontend/.output
+frontend/.vercel
+frontend/.svelte-kit
+frontend/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+*/vite.config.js.timestamp-*
+*/vite.config.ts.timestamp-*

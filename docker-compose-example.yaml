@@ -4,19 +4,42 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - DATABASE_URL="<your_pgsql_connection_string>"
+      - MODE=queue
+      - DATABASE_URL=postgresql://vidlocker:<your_very_secure_password>@db:5432/vidlocker
     ports:
-      - 3000:8080
+      - 8080:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./output:/app/output
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend # Ensure you have a Dockerfile specifically for frontend
+      ports:
+        - 8080:3000 # Expose frontend on port 8080 externally, but 3000 inside container
+      depends_on:
+        - backend # Ensure frontend starts after backend is available
+        - db
+      volumes:
 
   db:
     image: postgres:17.2-alpine
     environment:
-      - POSTGRES_USER="vidlocker"
-      - POSTGRES_PASSWORD="<your_pgsql_password_that_should_be_secret_and_secure>"
-      - POSTGRES_DB="vidlocker"
+      - POSTGRES_USER=vidlocker
+      - POSTGRES_PASSWORD=<your_very_secure_password>
+      - POSTGRES_DB=vidlocker
     ports:
       - 5432:5432
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vidlocker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-volumes: db_dat
+volumes:
+  db_data:
