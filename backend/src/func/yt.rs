@@ -26,29 +26,54 @@ pub fn get_mode() -> String {
 pub async fn get_title(viewkey: &str) -> Option<Video> {
     match env::var("YT_API_KEY") {
         Ok(key) => return get_title_api(viewkey, key).await,
-        Err(_) => return get_title_fallback(viewkey),
+        Err(_) => return get_title_fallback(viewkey).await,
     };
 }
 
-fn get_title_fallback(viewkey: &str) -> Option<Video> {
+async fn get_title_fallback(viewkey: &str) -> Option<Video> {
     let output = Command::new("sh")
         .arg("-c")
-        .arg(format!("yt-dlp -J {} | jq '.title'", viewkey))
+        .arg(format!("yt-dlp -J {}", viewkey))
         .output()
         .expect("Failed to execute command");
 
-    println!("Output: {}", String::from_utf8_lossy(&output.stdout));
+    let json: Value = serde_json::from_str(
+        String::from_utf8(output.stdout)
+            .expect("yt-dlp did not give a Valid Json output")
+            .as_str(),
+    )
+    .unwrap();
 
-    let title = String::from_utf8(output.stdout).unwrap();
-    let title = title.trim().trim_matches('"').to_string();
+    let timestamp = json
+        .get("timestamp")
+        .unwrap()
+        .to_string()
+        .parse::<i64>()
+        .unwrap();
+
+    // Create a normal DateTime from the NaiveDateTime
+    let datetime: DateTime<Utc> = DateTime::from_timestamp(timestamp, 0).unwrap();
+
+    let title = json
+        .get("title")
+        .and_then(|t| t.as_str())
+        .map(String::from) // Convert to String
+        .unwrap_or_else(|| "Unknown title".to_string());
+
+    // Extract and convert uploader to String
+    let uploader = json
+        .get("uploader")
+        .and_then(|u| u.as_str())
+        .map(String::from) // Convert to String
+        .unwrap_or_else(|| "Unknown uploader".to_string());
 
     Some(Video {
         viewkey: viewkey.to_owned(),
-        published_at: Utc::now(),
+        published_at: datetime,
         channel_id: "".to_owned(),
         title,
         description: "".to_owned(),
-        channel_name: "".to_owned(),
+        channel_name: uploader,
         tags: vec![],
     })
 }
@@ -123,6 +148,6 @@ async fn test_get_title() {
 
 #[tokio::test]
 async fn get_title_test() {
-    let res = get_title_fallback("dQw4w9WgXcQ").unwrap();
+    let res = get_title_fallback("dQw4w9WgXcQ").await.unwrap();
     println!("{:?}", res)
 }

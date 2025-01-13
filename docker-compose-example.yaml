@@ -2,34 +2,36 @@ services:
   vidlocker:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: backend/Dockerfile
     environment:
       - MODE=queue
-      - DATABASE_URL=postgresql://vidlocker:<your_very_secure_password>@db:5432/vidlocker
+      - DATABASE_URL=postgresql://vidlocker:<your_secure_password>@db:5432/vidlocker
     ports:
-      - 8080:3000
+      - 3001:3001
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - ./output:/app/output
+      - ./backend/output:/app/output
+    container_name: vidlocker-backend
+    networks:
+      - vidlocker-network
 
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend # Ensure you have a Dockerfile specifically for frontend
-      ports:
-        - 8080:3000 # Expose frontend on port 8080 externally, but 3000 inside container
-      depends_on:
-        - backend # Ensure frontend starts after backend is available
-        - db
-      volumes:
+  vidlocker-frontend:
+    build: ./frontend
+    ports:
+      - 3002
+    depends_on:
+      - vidlocker
+    networks:
+      - vidlocker-network
+    container_name: vidlocker-frontend
 
   db:
     image: postgres:17.2-alpine
     environment:
       - POSTGRES_USER=vidlocker
-      - POSTGRES_PASSWORD=<your_very_secure_password>
+      - POSTGRES_PASSWORD=<your_secure_password>
       - POSTGRES_DB=vidlocker
     ports:
       - 5432:5432
@@ -40,6 +42,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - vidlocker-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - vidlocker
+      - vidlocker-frontend
+    networks:
+      - vidlocker-network
 
 volumes:
   db_data:
+
+networks:
+  vidlocker-network:
+    driver: bridge
