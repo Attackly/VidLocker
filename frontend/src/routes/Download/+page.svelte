@@ -54,12 +54,7 @@
             const response = await fetch("/api/yt/mode");
             const data = await response.json();
             console.log(data);
-            if (data.mode === "api") {
-                useApi = true;
-                getYouTubeTitle(); // Start fetching the video title if API key exists
-            } else {
-                useApi = false; // Use the fallback embed method
-            }
+            getYouTubeTitle(); // Start fetching the video title if API key exists
         } catch (err) {
             error = "Failed to check API key";
             console.error(err);

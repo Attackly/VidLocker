@@ -1,62 +1,51 @@
 use std::path::PathBuf;
 use tokio::fs;
 
-
 // TODO I dont like this error handling. Find a way to fix this
 pub async fn dir_create<'a>(path: String) -> Result<&'a str, u8> {
     // Prevent someone from creating a Dir using ./../../../../Somewhere
     if path.find("..").is_some() {
-        return Err(1)
+        return Err(1);
     }
     let path = PathBuf::from("output/".to_owned() + &*path);
 
     match fs::create_dir_all(path).await {
-        Ok(_) => {
-            Ok("Dir Created")
-        }
-        Err(_) => {
-            Err(2)
-        }
+        Ok(_) => Ok("Dir Created"),
+        Err(_) => Err(2),
     }
-
-
 }
 
 pub async fn dir_delete<'a>(path: String) -> Result<&'a str, u8> {
+    // Prevent someone from deleting somewhere above the output directory
     if path.find("..").is_some() {
-        return Err(1)
+        return Err(1);
     }
 
-    let path = PathBuf::from("output/".to_owned() + &*path );
+    let path = PathBuf::from("output/".to_owned() + &*path);
 
     match fs::remove_dir_all(path).await {
-        Ok(_) => {
-            Ok("Dir deleted")
-        }
-        Err(_) => {
-            Err(2)
-        }
+        Ok(_) => Ok("Dir deleted"),
+        Err(_) => Err(2),
     }
 }
 
 pub async fn get_dir_size(path: String) -> Option<u64> {
+    // Prevents someone from getting the Dir size of a different dir above Output
     if path.find("..").is_some() {
-        return None
+        return None;
     }
 
     let p = PathBuf::from(path);
     match fs_extra::dir::get_size(p) {
         Ok(s) => Some(s),
-        Err(_) => {
-            None
-        }
+        Err(_) => None,
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
     use super::*;
+    use std::path::PathBuf;
 
     #[tokio::test]
     async fn test_dir_creation() {
@@ -93,12 +82,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_dir_size_failing_non_existant() {
-        assert!(get_dir_size("../../should_fail".to_string()).await.is_none());
+        assert!(get_dir_size("../../should_fail".to_string())
+            .await
+            .is_none());
     }
 
     #[tokio::test]
     async fn test_get_dir_size_failing() {
         assert!(get_dir_size("..".to_string()).await.is_none());
     }
-
 }
