@@ -31,18 +31,51 @@ CREATE TABLE videos (
     description TEXT,
     url VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    downyloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     downloaded_by INT,
     FOREIGN KEY (downloaded_by) REFERENCES users (id),
     path VARCHAR(255) NOT NULL,
-    category INT,
-    FOREIGN KEY (category) REFERENCES categories (id)
+    categories INT,
+    duration INT,
+    viewcount INT,
+    tags INT,
+    FOREIGN KEY ()
+    ext TEXT,
+    lang TEXT,
+    approx_size INT,
+    height INT,
+    width INT,
+    dynamic_range TEXT,
+    availability TEXT,
+    fps INT,
+    average_rating: INT,
+    age_limit,
+    likes INT
+);
+
+CREATE TABLE video_categories (
+    video_id INT,
+    FOREIGN KEY(video_id) REFERENCES videos (id),
+    categorie_id INT,
+    FOREIGN KEY(categorie_id) REFERENCES categorie (id)
+);
+
+CREATE TABLE tags (
+id SERIAL PRIMARY KEY,
+name TEXT);
+
+CREATE TABLE video_tags (
+video_id INT,
+FOREIGN KEY(video_id) REFERENCES videos (id),
+tags_id INT,
+FOREIGN KEY(tags_id) REFERENCES tags (id)
 );
 
 CREATE TABLE channels (
     id SERIAL PRIMARY KEY,
     channel_key VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL,
+    follower INT
 );
 
 CREATE TABLE queue (
