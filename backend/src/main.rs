@@ -2,31 +2,41 @@
 mod func;
 mod queue;
 mod routes;
-
 use std::time::Duration;
 
-use crate::func::preperations::create_output_dir;
-use crate::queue::queue_worker::queue_worker;
-use crate::routes::files::{create_dir_handler, get_single_dir_size_handler};
-use crate::routes::video::simple_download_handler;
-use crate::routes::yt::title_handler;
-use axum::http::Method;
+use crate::{
+    func::preperations::{create_output_dir, prepare_database},
+    queue::queue_worker::queue_worker,
+    routes::{
+        files::{create_dir_handler, dir_delete_handler, get_single_dir_size_handler},
+        misc::check_system_handler,
+        video::simple_download_handler,
+        yt::{mode_handler, title_handler},
+    },
+};
 use axum::{
+    http::Method,
     routing::{delete, get, post, put},
     Router,
 };
-use func::preperations::prepare_database;
-use routes::{files::dir_delete_handler, misc::check_system_handler, yt::mode_handler};
 use sqlx::postgres::PgPoolOptions;
 use tokio::time::sleep;
 use tower_http::cors::{Any, CorsLayer};
+use tracing::{debug, info};
+
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt().init();
+
     let handle_count = 4;
+    debug!("handle_count = {}", handle_count);
     let idle_time = 10;
+    debug!("idle_time = {}", idle_time);
 
     create_output_dir();
+    info!("create_output_dir finished");
     prepare_database().await;
+    info!("prepare_database finished");
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let queue_pool = PgPoolOptions::new()
@@ -35,18 +45,20 @@ async fn main() {
         .await
         .expect("Failed to connect to database");
 
+    info!("Created and connected to queue pool");
+
     let mut handles = Vec::new();
     for i in 0..handle_count {
         let pool = queue_pool.clone();
         let handle = tokio::spawn(async move {
-            println!("Started worker {i}");
+            info!("Started worker {i}");
             queue_worker(i, pool).await;
         });
         handles.push(handle);
         sleep(Duration::from_secs((idle_time / handle_count) as u64)).await;
     }
+    info!("Started all Workers");
 
-    // create_download_threads();
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_origin(Any) // Allow any origin
@@ -66,5 +78,6 @@ async fn main() {
         .layer(cors);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
 
+    info!("Serving app now");
     axum::serve(listener, app).await.unwrap()
 }
