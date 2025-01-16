@@ -29,3 +29,4 @@ Thumbs.db
 */vite.config.ts.timestamp-*
 /output
 backend/example for db.json
+o.json
