@@ -4,17 +4,6 @@ use serde::Serialize;
 use serde_json::Value;
 use std::{env, process::Command};
 
-#[derive(Debug, Serialize)]
-pub struct Video {
-    viewkey: String,
-    published_at: DateTime<Utc>,
-    channel_id: String,
-    title: String,
-    description: String,
-    channel_name: String,
-    tags: Vec<String>,
-}
-
 pub fn get_mode() -> String {
     if env::var("YT_API_KEY").is_err() {
         "fallback".to_owned()
