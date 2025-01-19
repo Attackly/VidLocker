@@ -40,7 +40,6 @@ CREATE TABLE videos (
     tags INT,
     ext TEXT,
     lang TEXT,
-    approx_size INT,
     height INT,
     width INT,
     dynamic_range TEXT,
