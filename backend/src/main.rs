@@ -2,6 +2,7 @@
 mod func;
 mod queue;
 mod routes;
+mod structs;
 use std::time::Duration;
 
 use crate::{
