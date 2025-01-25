@@ -1,38 +1,48 @@
+use chrono::DateTime;
+use chrono::Utc;
 use serde::Serialize;
+use serde::Serializer;
 use serde_json::Value;
+use serde_with::serde_as;
+use std::path::PathBuf;
+use std::process::Command;
+use std::str::FromStr;
+use url::Url;
 
+#[serde_as]
 #[derive(Debug, Serialize)]
 pub struct Video {
-    viewkey: String,
-    published_at: Option<DateTime<Utc>>,
-    channel_id: Option<String>,
-    title: Option<String>,
-    description: Option<String>,
-    channel_name: Option<String>,
-    tags: Option<Vec<String>>,
-    url: Url,
-    created_at: Option<DateTime<Utc>>,
-    downloaded_at: Option<DateTime<Utc>>,
-    path: Option<PathBuf>,
-    duration: Option<u32>,
-    viewcount: Option<u64>,
-    ext: Option<String>,
-    lang: Option<String>,
-    height: Option<u16>,
-    width: Option<u16>,
-    dynamic_range: Option<String>,
-    availability: Option<String>,
-    fps: Option<u16>,
-    average_rating: Option<u8>,
-    age_limit: Option<u8>,
-    likes: Option<u64>,
-    status: Option<String>,
-    comments: Option<u64>,
-    chapters: Option<String>,
+    pub viewkey: String,
+    pub published_at: Option<DateTime<Utc>>,
+    pub channel_id: Option<String>,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub channel_name: Option<String>,
+    pub tags: Option<Vec<String>>,
+    #[serde(serialize_with = "serialize_option_url")]
+    pub url: Option<Url>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub downloaded_at: Option<DateTime<Utc>>,
+    pub path: Option<PathBuf>,
+    pub duration: Option<u32>,
+    pub viewcount: Option<u64>,
+    pub ext: Option<String>,
+    pub lang: Option<String>,
+    pub height: Option<u16>,
+    pub width: Option<u16>,
+    pub dynamic_range: Option<String>,
+    pub availability: Option<String>,
+    pub fps: Option<u16>,
+    pub average_rating: Option<u8>,
+    pub age_limit: Option<u8>,
+    pub likes: Option<u64>,
+    pub status: Option<String>,
+    pub comments: Option<u64>,
+    pub chapters: Option<String>,
 }
 
 impl Video {
-    fn from_yt_viewkey(viwkey: String) -> Video {
+    fn from_yt_viewkey(viewkey: String) -> Video {
         let output = Command::new("sh")
             .arg("-c")
             .arg(format!("yt-dlp -J {}", viewkey))
@@ -46,16 +56,18 @@ impl Video {
         )
         .unwrap();
 
-        let published_at = match json.get("timestamp") {
-            Some(v) => v.to_string().parse::<i64>().unwrap(),
-            None(_) => 0,
-        };
+        let timestamp = json.get("timestamp").and_then(|f| f.as_i64()).unwrap();
 
-        let channel_id = json
+        let published_at = Some(DateTime::from_timestamp(timestamp, 0).expect("Invalid timestamp"));
+
+        let channel_id = match json
             .get("channel_id")
             .and_then(|u| u.as_str())
             .map(String::from)
-            .unwrap_or_else(|| "Unknown Uploader".to_string());
+        {
+            Some(v) => Some(v),
+            None => None,
+        };
 
         let uploader = json
             .get("uploader")
@@ -63,82 +75,120 @@ impl Video {
             .map(String::from) // Convert to String
             .unwrap_or_else(|| "Unknown uploader".to_string());
 
-        let title = json
-            .get("title")
-            .and_then(|t| t.as_str())
-            .map(String::from)
-            .unwrap_or_else(|| "Unkown Title");
+        let title = match json.get("title").and_then(|t| t.as_str()).map(String::from) {
+            Some(v) => Some(v),
+            None => None,
+        };
 
-        let description = json
+        let description = match json
             .get("description")
             .and_then(|d| d.as_str())
             .map(String::from)
-            .unwrap_or_else(|| "No Description");
+        {
+            Some(v) => Some(v),
+            None => None,
+        };
 
-        let channel_name = json
+        let channel_name = match json
             .get("channel")
             .and_then(|d| d.as_str())
             .map(String::from)
-            .unwrap_or_else(|| "No Description");
+        {
+            Some(v) => Some(v),
+            None => None,
+        };
 
-        let tags = json.get("tags");
+        let tags: Option<Vec<String>> = json
+            .get("tags")
+            .and_then(|tags| tags.as_array()) // Ensure it's an array
+            .map(|array| {
+                array
+                    .iter()
+                    .filter_map(|value| value.as_str().map(|s| s.to_string())) // Convert to String
+                    .collect()
+            });
 
-        let url = json.get("url");
+        let url = match Url::from_str(json.get("url").unwrap().as_str().unwrap()) {
+            Ok(v) => Some(v),
+            Err(_) => None,
+        };
 
-        let created_at = DateTime::now();
+        let created_at = Some(Utc::now());
 
-        let duration = json.get("duration").and_then(|d| d.parse::<u32>());
+        let duration = json
+            .get("duration")
+            .and_then(|d| d.as_u64())
+            .map(|d| d as u32);
 
-        let viewcount = json.get("view_count").and_then(|d| d.parse::<u64>());
+        let viewcount = json.get("view_count").and_then(|a| a.as_u64());
 
-        let lang = json
+        let lang = match json
             .get("language")
             .and_then(|l| l.as_str())
             .map(String::from)
-            .unwrap_or_else(|| "No Description");
+        {
+            Some(v) => Some(v),
+            None => None,
+        };
 
-        let height = json.get("height").and_then(|h| h.parse::<u16>());
-        let width = json.get("width").and_then(|w| w.parse::<u16>());
+        let height = json
+            .get("height")
+            .and_then(|a| a.as_u64())
+            .map(|a| a as u16);
 
-        let dynamic_range = json
+        let width = json.get("width").and_then(|a| a.as_u64()).map(|a| a as u16);
+
+        let dynamic_range = match json
             .get("dynamic_range")
             .and_then(|l| l.as_str())
             .map(String::from)
-            .unwrap_or_else(|| "N/a");
+        {
+            Some(v) => Some(v),
+            None => None,
+        };
 
-        let availability = json
+        let availability = match json
             .get("availability")
             .and_then(|a| a.as_str())
             .map(String::from)
-            .unwrap_or_else(|| "N/a");
+        {
+            Some(v) => Some(v),
+            None => None,
+        };
 
-        let fps = json.get("fps").and_then(|f| f.parse::<u16>());
+        let fps = json.get("fps").and_then(|a| a.as_u64()).map(|a| a as u16);
 
-        let average_rating = json
+        let average_rating: Option<u8> = json
             .get("average_rating")
-            .and_then(|a| a.as_str())
-            .map(String::from)
-            .unwrap_or_else(|| None);
+            .and_then(|a| a.as_u64())
+            .map(|val| val as u8);
 
-        let age_limit = json.get("age_limit").and_then(|a| a.parse::<u8>());
+        let age_limit = json
+            .get("age_limit")
+            .and_then(|a| a.as_u64())
+            .map(|a| a as u8);
 
-        let likes = json.get("like_count").and_then(|a| a.parse::<u64>());
+        let likes = json.get("like_count").and_then(|a| a.as_u64());
 
-        let status = json
+        let status = match json
             .get("status")
             .and_then(|a| a.as_str())
             .map(String::from)
-            .unwrap_or_else(|| "N/a");
+        {
+            Some(v) => Some(v),
+            None => None,
+        };
 
-        let comments = json
-            .get("comment_count")
-            .and_then(|a| a.parse::<u64>().unwrap_or_else(|| 0));
+        let comments = json.get("comment_count").and_then(|a| a.as_u64());
 
-        let chapters = json
+        let chapters = match json
             .get("chapters")
             .and_then(|a| a.as_str())
             .map(String::from)
-            .unwrap_or_else(|| "N/a");
+        {
+            Some(v) => Some(v),
+            None => None,
+        };
 
         Video {
             viewkey,
@@ -150,7 +200,6 @@ impl Video {
             tags,
             url,
             created_at,
-            path,
             duration,
             viewcount,
             lang,
@@ -165,6 +214,19 @@ impl Video {
             status,
             comments,
             chapters,
+            downloaded_at: None,
+            ext: None,
+            path: None,
         }
+    }
+}
+
+fn serialize_option_url<S>(url: &Option<Url>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match url {
+        Some(u) => serializer.serialize_some(u.as_str()), // Serialize Url as a string
+        None => serializer.serialize_none(),              // Serialize None
     }
 }
