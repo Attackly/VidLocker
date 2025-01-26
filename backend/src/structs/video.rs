@@ -1,9 +1,9 @@
-use chrono::DateTime;
-use chrono::Utc;
 use serde::Serialize;
 use serde::Serializer;
 use serde_json::Value;
 use serde_with::serde_as;
+use sqlx::types::chrono::{DateTime, Utc};
+use sqlx::PgPool;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
@@ -68,12 +68,6 @@ impl Video {
             Some(v) => Some(v),
             None => None,
         };
-
-        let uploader = json
-            .get("uploader")
-            .and_then(|u| u.as_str())
-            .map(String::from) // Convert to String
-            .unwrap_or_else(|| "Unknown uploader".to_string());
 
         let title = match json.get("title").and_then(|t| t.as_str()).map(String::from) {
             Some(v) => Some(v),
@@ -218,6 +212,13 @@ impl Video {
             ext: None,
             path: None,
         }
+    }
+    pub async fn to_database(self, pool: PgPool) -> Result<(), sqlx::Error> {
+        match sqlx::query!("INSERT INTO videos (viewkey, title, description, url, created_at, downloaded_at, duration, viewcount, tags, ext, lang, height, width, dynamic_range, availability, fps, average_rating, age_limit, likes, status, comments, chapters) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)", self.viewkey, self.title, self.description, self.url, self.created_at, self.downloaded_at, self.duration.map(|duration| duration as i64), self.viewcount.map(|vc| vc as i64), self.tags, self.ext, self.lang, self.height.map(|height| height as i32), self.width.map(|width| width as i32), self.dynamic_range, self.availability, self.fps.map(|fps| fps as i32), self.average_rating.map(|ar| ar as i16), self.age_limit.map(|al| al as i16), self.likes.map(|likes| likes as i64), self.status, self.comments.map(|comments| comments as i64), self.chapters)
+            .execute(&pool).await {
+            Ok(_) => return Ok(()),
+            Err(e) => {println!("{:?}", e); return Err(e)}
+        };
     }
 }
 

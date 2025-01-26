@@ -1,7 +1,6 @@
 use super::responses::ModeResponse;
 use crate::func::yt::VideoResp;
 use crate::func::yt::{get_mode, get_title};
-use crate::structs::video::Video;
 use axum::http::StatusCode;
 use axum::Json;
 use serde::{Deserialize, Serialize};
