@@ -1,9 +1,10 @@
-use serde_json::Value;
 use sqlx::postgres::PgPoolOptions;
 use std::path::PathBuf;
-use std::process::Command;
 use std::thread;
-use youtube_dl::YoutubeDl; // Assuming you're using the youtube-dl crate.
+use tracing::error;
+use youtube_dl::YoutubeDl;
+
+use crate::structs::video::Video;
 
 pub async fn download_video_simple_ydl(link: String) {
     let folder_path = "./output";
@@ -26,52 +27,25 @@ pub async fn write_db_entry(link: &String) {
         .await
         .expect("Failed to connect to database");
 
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(format!("yt-dlp -J {}", link))
-        .output()
-        .expect("Failed to execute command");
+    let url: Vec<&str> = { link.split("?v=").collect() };
 
-    if !output.status.success() {
-        eprintln!(
-            "Command failed with status: {}\nError: {}",
-            output.status,
-            String::from_utf8_lossy(&output.stderr)
-        );
-        return;
-    }
+    let res = Video::from_yt_viewkey(url[0].to_string());
 
-    let json_output = String::from_utf8(output.stdout).expect("Invalid UTF-8 in command output");
-    if json_output.trim().is_empty() {
-        eprintln!("No JSON output from yt-dlp.");
-        return;
-    }
+    let id = res.to_database(&pool).await;
 
-    let json_value: Value = match serde_json::from_str(&json_output) {
-        Ok(value) => value,
-        Err(err) => {
-            eprintln!("Failed to parse JSON: {}\nOutput: {}", err, json_output);
-            return;
-        }
-    };
-
-    let res = sqlx::query!(
-        "INSERT INTO videos (viewkey, title, description, url, path) VALUES ($1, $2, $3, $4, $5) RETURNING id;",
-        json_value.get("id").unwrap().to_string().replace("\"", ""),
-        json_value.get("title").unwrap().to_string().replace("\"",""),
-        json_value.get("description").unwrap().to_string().replace("\"",""),
-        link,
-        "/"
+    let queue_res = sqlx::query!(
+        "INSERT INTO queue (video_id, added_by) VALUES ($1, 1)",
+        id.unwrap()
     )
-    .fetch_one(&pool)
-    .await
-    .unwrap();
+    .execute(&pool)
+    .await;
 
-    sqlx::query!("INSERT INTO queue (video_id) VALUES ($1)", res.id)
-        .execute(&pool)
-        .await
-        .unwrap();
-    // Write the entry to the database
+    match queue_res {
+        Ok(_) => {}
+        Err(e) => {
+            error!("There was an error writing the Video into the Queue: {e}")
+        }
+    }
 }
 
 #[tokio::test]

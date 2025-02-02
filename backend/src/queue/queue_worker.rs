@@ -1,6 +1,7 @@
 use sqlx::postgres::Postgres;
 use sqlx::PgPool;
 use sqlx::Transaction;
+use tracing::{debug, info};
 
 use crate::func::video::download_video_simple_ydl;
 
@@ -8,7 +9,7 @@ pub async fn queue_worker(id: u32, pool: PgPool) {
     loop {
         match get_task(&pool).await {
             Some((task_id, url)) => {
-                print!("Found a Task. Will download. task with id: {task_id}");
+                info!("Found a Task. Will download. task with id: {task_id}");
                 download_video_simple_ydl(url).await;
 
                 mark_task_completed(&pool, task_id)
@@ -16,7 +17,7 @@ pub async fn queue_worker(id: u32, pool: PgPool) {
                     .expect("Failed to mark task as completed");
             }
             None => {
-                println!("Worker {} is idle", id);
+                debug!("Worker {} is idle", id);
                 tokio::time::sleep(std::time::Duration::from_secs(10)).await;
             }
         }
