@@ -1,8 +1,11 @@
 # VidLocker
-
 ## Description
 VidLocker is a full-stack web application that allows users to download and manage videos efficiently.
 The backend is built using Rust, while the frontend is written in SvelteKit.
+
+## Why
+It was mainly for VTubers. After the "Termination" of Selen Tatsuki.
+It aims at Preserving the Livestreams and videos of talents.
 
 ## Features (as of now)
 - Video download
@@ -54,9 +57,9 @@ This project is licensed under the AGPLv3 License. See the `LICENSE` file for de
 Contributions are welcome! Please follow these steps:
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix.
-3. Commit your changes with descriptive messages.
-4. Open a pull request to the `main` branch.
+3. Commit your changes with a short message of what it does.
+4. Open a pull request branch.
 
 ## Problems, features, etc.
 For questions or help open an issue.
-Or Contact me on Discord. #Attackly
+Or Contact me on Discord. @Attackly
