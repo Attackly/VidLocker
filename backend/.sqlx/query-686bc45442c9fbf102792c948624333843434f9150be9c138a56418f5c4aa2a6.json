@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO queue (video_id) VALUES ($1)",
+  "query": "INSERT INTO queue (video_id, added_by) VALUES ($1, 1)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -10,5 +10,5 @@
     },
     "nullable": []
   },
-  "hash": "8f006ea77ca0149ad8a1022b05fbcd189e97207c1e8602f4a3b70e468c13ad16"
+  "hash": "686bc45442c9fbf102792c948624333843434f9150be9c138a56418f5c4aa2a6"
 }
