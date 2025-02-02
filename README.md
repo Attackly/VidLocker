@@ -59,3 +59,4 @@ Contributions are welcome! Please follow these steps:
 
 ## Problems, features, etc.
 For questions or help open an issue.
+Or Contact me on Discord. #Attackly
