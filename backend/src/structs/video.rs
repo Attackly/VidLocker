@@ -43,7 +43,7 @@ pub struct Video {
 }
 
 impl Video {
-    fn from_yt_viewkey(viewkey: String) -> Video {
+    pub fn from_yt_viewkey(viewkey: String) -> Video {
         let output = Command::new("sh")
             .arg("-c")
             .arg(format!("yt-dlp -J {}", viewkey))
@@ -214,12 +214,12 @@ impl Video {
             path: None,
         }
     }
-    pub async fn to_database(self, pool: PgPool) -> Result<(), sqlx::Error> {
-        match sqlx::query!("INSERT INTO videos (viewkey, title, description, url, created_at, downloaded_at, duration, viewcount, ext, lang, height, width, dynamic_range, availability, fps, average_rating, age_limit, likes, status, comments, chapters) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)", self.viewkey, self.title, self.description, self.url.map(|url| url.to_string()),   self.created_at.map(|dt| OffsetDateTime::from_unix_timestamp(dt.timestamp()).unwrap().replace_nanosecond(dt.timestamp_subsec_nanos()).unwrap()),
+    pub async fn to_database(self, pool: &PgPool) -> Result<i32, sqlx::Error> {
+        match sqlx::query!("INSERT INTO videos (viewkey, title, description, url, created_at, downloaded_at, duration, viewcount, ext, lang, height, width, dynamic_range, availability, fps, average_rating, age_limit, likes, status, comments, chapters) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) RETURNING id", self.viewkey, self.title, self.description, self.url.map(|url| url.to_string()),   self.created_at.map(|dt| OffsetDateTime::from_unix_timestamp(dt.timestamp()).unwrap().replace_nanosecond(dt.timestamp_subsec_nanos()).unwrap()),
           self.downloaded_at.map(|dt| OffsetDateTime::from_unix_timestamp(dt.timestamp()).unwrap().replace_nanosecond(dt.timestamp_subsec_nanos()).unwrap())
 , self.duration.map(|duration| duration as i32), self.viewcount.map(|vc| vc as i64), self.ext, self.lang, self.height.map(|height| height as i32), self.width.map(|width| width as i32), self.dynamic_range, self.availability, self.fps.map(|fps| fps as i32), self.average_rating.map(|ar| ar as i16), self.age_limit.map(|al| al as i16), self.likes.map(|likes| likes as i32), self.status, self.comments.map(|comments| comments as i32), self.chapters)
-            .execute(&pool).await {
-            Ok(_) => return Ok(()),
+            .fetch_one(pool).await {
+            Ok(id) => return Ok(id.id),
             Err(e) => {println!("{:?}", e); return Err(e)}
         };
     }
