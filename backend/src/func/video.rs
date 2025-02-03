@@ -29,7 +29,7 @@ pub async fn write_db_entry(link: &String) {
 
     let url: Vec<&str> = { link.split("?v=").collect() };
 
-    let res = Video::from_yt_viewkey(url[0].to_string());
+    let res = Video::from_yt_viewkey(url[1].to_string());
 
     let id = res.to_database(&pool).await;
 
