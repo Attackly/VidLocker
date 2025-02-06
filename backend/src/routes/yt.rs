@@ -57,3 +57,38 @@ pub async fn title_handler(Json(payload): Json<VideoRequest>) -> Json<VideoRespo
         }
     };
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serial_test::serial;
+    use std::env;
+
+    #[tokio::test]
+    #[serial]
+    async fn test_mode_handler_api() {
+        env::set_var("YT_API_KEY", "A_FAKE_KEY");
+        let response = mode_handler().await;
+        assert_eq!(
+            response.0,
+            ModeResponse {
+                status: 200,
+                mode: "api".to_string()
+            }
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_mode_handler_fallback() {
+        env::remove_var("YT_API_KEY");
+        let response = mode_handler().await;
+        assert_eq!(
+            response.0,
+            ModeResponse {
+                status: 200,
+                mode: "fallback".to_string()
+            }
+        );
+    }
+}
