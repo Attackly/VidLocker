@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO videos (viewkey, title, description, url, created_at, downloaded_at, duration, viewcount, ext, lang, height, width, dynamic_range, availability, fps, average_rating, age_limit, likes, status, comments, chapters) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) RETURNING id",
+  "query": "INSERT INTO videos (viewkey, title, description, url, created_at, downloaded_at, duration, viewcount, ext, lang, height, width, dynamic_range, availability, fps, average_rating, age_limit, likes, status, comments, chapters, path) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, '/') RETURNING id",
   "describe": {
     "columns": [
       {
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "2c58e38d329a96761bc2ca464ced9b979e7df22c329947d24cc92d80b351bcd0"
+  "hash": "473d2ddf7330446db47323063f94f888ca3a9f1a3d768c39836747ca3ea950ca"
 }
