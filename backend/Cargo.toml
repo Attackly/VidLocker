@@ -21,7 +21,7 @@ time = "0.3.34"
 rand = "0.8.5"
 argon2 = "0.5.3"
 fs_extra = "1.3.0"
-async-trait = "0.1.85"
+async-trait = "0.1.86"
 tower-http = { version = "0.6.0", features = ["full"] }
 youtube_dl = "0.10.0"
 toml = "0.8.19"
