@@ -47,12 +47,3 @@ pub async fn write_db_entry(link: &String) {
         }
     }
 }
-
-#[tokio::test]
-async fn test_download_video_simple_ydl() {
-    dotenvy::dotenv().ok();
-    let res = write_db_entry(&"https://www.youtube.com/watch?v=Rv4zAZMiS4Y".to_string()).await;
-    println!("{:?}", res);
-
-    return;
-}
