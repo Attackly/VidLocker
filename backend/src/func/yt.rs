@@ -77,15 +77,6 @@ async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {
     })
 }
 
-/*
-#[tokio::test]
-async fn test_get_title() {
-    dotenvy::dotenv().ok();
-    let res = get_title("dQw4w9WgXcQ").await.unwrap();
-    println!("{:?}", res)
-}
-*/
-
 // TODO FIX THIS. THATS A STUPID AND BAD SOLUTION TO THE PROBLEM
 #[derive(Serialize)]
 pub struct VideoResp {

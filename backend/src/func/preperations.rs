@@ -26,3 +26,20 @@ pub async fn prepare_database() -> () {
         .await
         .expect("Failed to run migrations");
 }
+
+#[cfg(test)]
+mod test {
+    /*
+    COMMENTED OUT BECAUSE SUPABASE CANT CREATE NEW DATABASES ON THE FLY
+
+    use sqlx::PgPool;
+
+    #[sqlx::test]
+    async fn test_prepare_database(pool: PgPool) -> sqlx::Result<()> {
+        let mut conn = pool.acquire().await?;
+
+        sqlx::migrate!("./migrations").run(&mut conn).await.unwrap();
+        Ok(())
+    }
+    */
+}
