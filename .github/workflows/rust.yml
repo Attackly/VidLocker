@@ -38,9 +38,9 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t backend -f backend/Dockerfile .
+          docker build -t vidlocker -f backend/Dockerfile .
 
       - name: Push Docker image
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
-          docker push your-image-name
+          docker push vidlocker
