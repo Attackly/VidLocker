@@ -1,9 +1,8 @@
+use crate::func::video::download_video_simple_ydl;
 use sqlx::postgres::Postgres;
 use sqlx::PgPool;
 use sqlx::Transaction;
 use tracing::{debug, info};
-
-use crate::func::video::download_video_simple_ydl;
 
 pub async fn queue_worker(id: u32, pool: PgPool) {
     loop {
