@@ -16,7 +16,6 @@ RUN apk add --no-cache \
     bash \
     pkgconfig
 
-# Set up the environment variable to specify the OpenSSL directory (if necessary)
 ENV OPENSSL_LIB_DIR=/usr/lib
 ENV OPENSSL_INCLUDE_DIR=/usr/include
 # Set the working directory
@@ -30,9 +29,8 @@ RUN cargo build --release
 
 # Stage 2: Create a minimal runtime image
 FROM alpine:latest
-RUN apk add yt-dlp
 
-# Install runtime dependencies
+RUN apk add yt-dlp
 
 # Set the working directory
 WORKDIR /app
