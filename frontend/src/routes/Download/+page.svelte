@@ -1,4 +1,11 @@
 <script lang="ts">
+    interface FileItem {
+        Name: string;
+        Size: number;
+        ID: string;
+        IsFolder: boolean;
+    }
+
     import { onMount } from "svelte";
 
     let error_message: string = "";
@@ -14,7 +21,14 @@
     let video_published_str: string = "";
     let disabled = true;
     let isOpen = true;
-    let data: any[] = [{ Name: "Baerys newyear karaoke", Size: 1000 }];
+    let data: any[] = [
+        {
+            Name: "Baerys newyear karaoke",
+            Size: 1000,
+            ID: "abc123-321cba",
+            IsFolder: true,
+        },
+    ];
     function url_verify() {
         // ViewKey
         if (url.length == 11) {
@@ -129,7 +143,7 @@
         </label>
     </div>
 
-    <div class="lg:w-1/3 mt-8 card p-4">
+    <div class="lg:w-1/3 mt-5 card p-4">
         <div
             class="relative w-full bg-gray-400 rounded shadow-lg"
             style="padding-top: 56.25%;"
@@ -148,7 +162,7 @@
         </div>
     </div>
 
-    <div class="lg:w-1/3 mt-8 card p-4">
+    <div class="lg:w-1/3 mt-5 card p-4">
         {#if !isError}
             <div>
                 Video Title:<br />
@@ -181,22 +195,24 @@
         {/if}
     </div>
 
-    <div class="lg:w-1/3 mt-8 card p-4">
-        <div class="card-header">
-            <h3>Collapsible Card</h3>
-            <button on:click={() => (isOpen = !isOpen)}>
-                {#if isOpen}
-                    🔼
-                {:else}
-                    🔽
-                {/if}
-            </button>
+    <div class="lg:w-1/3 mt-5 card p-4">
+        <div class="">
+            <h3>
+                Collapsible Card <button on:click={() => (isOpen = !isOpen)}>
+                    {#if isOpen}
+                        🔼
+                    {:else}
+                        🔽
+                    {/if}
+                </button>
+            </h3>
         </div>
         {#if isOpen}
             {#if data.length > 0}
                 <table class="w-full">
                     <thead class="">
                         <tr>
+                            <th class="py-2 text-left">Type</th>
                             <th class="px-4 py-2 text-left">Name</th>
                             <th class="px-4 py-2 text-left">Size</th>
                             <th class="px-4 py-2 text-left">Action</th>
@@ -204,13 +220,19 @@
                     </thead>
                     <tbody>
                         {#each data as row}
-                            <tr>
+                            <tr class="hover:bg-gray-600 hover:rounded">
+                                {#if row.IsFolder}
+                                    <svg class="w-5 h-5 ml-2 mt-2" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"/></svg>
+                                {:else}
+                                    <svg class="w-5 h-5" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z"/></svg>
+                                {/if}
                                 <td class="px-4 py-2">{row.Name}</td>
                                 <td class="px-4 py-2">{row.Size}</td>
                                 <td
                                     ><button
                                         class="bg-red-700 p-1 rounded"
-                                        id="test"
+                                        data-file={row.ID}
+                                        id="trash"
                                     >
                                         <svg
                                             class="w-5 h-5"
@@ -237,11 +259,8 @@
             {/if}
         {/if}
     </div>
-    {#if isOpen}
-        <div class="lg:w-1/3 mt-8 card p-4"></div>
-    {/if}
 
-    <div class="lg:w-1/3 mt-8 card p-4">
+    <div class="lg:w-1/3 mt-5 card p-4">
         <button
             class="btn text-center w-full variant-filled"
             {disabled}
