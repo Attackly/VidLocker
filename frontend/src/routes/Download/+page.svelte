@@ -23,10 +23,16 @@
     let isOpen = true;
     let data: any[] = [
         {
-            Name: "Baerys newyear karaoke",
+            Name: "Karaokes",
             Size: 1000,
             ID: "abc123-321cba",
             IsFolder: true,
+        },
+        {
+            Name: "Baerys newyear karaoke",
+            Size: 100000,
+            ID: "321cba-abc123",
+            IsFolder: false,
         },
     ];
     function url_verify() {
@@ -222,15 +228,32 @@
                         {#each data as row}
                             <tr class="hover:bg-gray-600 hover:rounded">
                                 {#if row.IsFolder}
-                                    <svg class="w-5 h-5 ml-2 mt-2" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"/></svg>
+                                    <svg
+                                        class="w-5 h-5 ml-2 mt-2"
+                                        fill="#ffffff"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 512 512"
+                                        ><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path
+                                            d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"
+                                        /></svg
+                                    >
                                 {:else}
-                                    <svg class="w-5 h-5" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z"/></svg>
+                                    <svg
+                                        class="w-5 h-5 ml-2 mt-2"
+                                        fill="#ffffff"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 384 512"
+                                        ><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path
+                                            d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z"
+                                        /></svg
+                                    >
                                 {/if}
                                 <td class="px-4 py-2">{row.Name}</td>
                                 <td class="px-4 py-2">{row.Size}</td>
                                 <td
                                     ><button
-                                        class="bg-red-700 p-1 rounded"
+                                        type="button"
+                                        class="btn-icon variant-filled style-error-500"
                                         data-file={row.ID}
                                         id="trash"
                                     >
@@ -244,7 +267,22 @@
                                             /></svg
                                         >
                                     </button>
-                                </td>
+                                    <button
+                                        class="bg-blue-700 p-1 rounded"
+                                        data-file={row.ID}
+                                        id="trash"
+                                    >
+                                        <svg
+                                            class="w-5 h-5"
+                                            fill="#ffffff"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 512 512"
+                                            ><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path
+                                                d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"
+                                            /></svg
+                                        >
+                                    </button></td
+                                >
                             </tr>
                         {/each}
                     </tbody>
