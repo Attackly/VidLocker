@@ -1,4 +1,7 @@
-<!-- YOU CAN DELETE EVERYTHING IN THIS PAGE -->
-<div class="container h-full mx-auto flex justify-center items-center">
-	<a href="Download" class="btn variant-filled">Donwload Something</a>
+<script>
+    import { theme } from "$lib/stores/theme";
+</script>
+
+<div class="min-h-screen p-6" data-theme={theme}>
+    <div class="bg-primary p-4 mt-4 text-white">Hallo wie geht es dir so?</div>
 </div>
