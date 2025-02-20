@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary: var(--theme-color-primary);
+    --color-background: var(--theme-color-background);
+}
+
+@layer base {
+    :root {
+        --theme-color-primary: #4352ce;
+        --theme-color-background: #595b62;
+    }
+
+    [data-theme="bird"] {
+        --theme-color-primary: #4352ce;
+        --theme-color-background: #595b62;
+    }
+
+    [data-theme="death-dark"] {
+        --theme-color-primary: #ffcde2;
+        --theme-color-background: #191b25;
+        --theme-color-text: #ffffff;
+        --theme-color-card-bg: #3f445d;
+    }
+}
+
+@layer utilities {
+    .bg-primary {
+        background-color: var(--color-background);
+    }
+
+    .global-bg-color {
+        background-color: var(--color-background);
+    }
+
+    .text-primary {
+        text-color: var(--theme-color-text);
+    }
+
+    .card-bg {
+        background-color: var(--theme-color-card-bg);
+    }
+}
