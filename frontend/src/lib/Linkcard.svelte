@@ -35,12 +35,12 @@
 </script>
 
 <div
-    class="card md:w-2/3 xl:w-1/3 mt-8 p-4 text-primary rounded-lg overflow-hidden shadow-lg card-bg"
+    class="card sm:w-3/4 xl:w-1/3 mt-8 p-4 text-primary rounded-lg overflow-hidden shadow-lg card-bg"
 >
-    <label class="label flex items-center space-x-4">
+    <label class="label flex items-center space-x-4 text-primary">
         <span>Url</span>
         <input
-            class="{validation} border border-gray-300 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="{validation}  border-primary p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             type="text"
             placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             bind:value={url}

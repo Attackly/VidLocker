@@ -71,6 +71,7 @@ async fn main() {
         .route("/api/downloadVideo", post(simple_download_handler))
         .route("/api/files/size", post(get_single_dir_size_handler))
         .route("/api/files/dir_delete", delete(dir_delete_handler))
+        .route("/api/files", get(todo!()))
         .route("/api/yt/mode", get(mode_handler))
         .layer(cors.clone())
         .route("/api/yt/getTitle", post(title_handler))
