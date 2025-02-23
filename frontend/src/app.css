@@ -13,31 +13,38 @@
 
     [data-theme="bird"] {
         --theme-color-primary: #4352ce;
-        --theme-color-background: #595b62;
+        --theme-color-background: #2c2d31;
+        --theme-color-text: #ffffff;
+        --theme-color-card-bg: #232026;
     }
 
     [data-theme="death-dark"] {
-        --theme-color-primary: #ffcde2;
+        --theme-color-primary: #ff4a93;
         --theme-color-background: #191b25;
-        --theme-color-text: #ffffff;
-        --theme-color-card-bg: #3f445d;
+        --theme-color-text: #f7b4c7;
+        --theme-color-card-bg: #232026;
     }
 }
 
 @layer utilities {
     .bg-primary {
-        background-color: var(--color-background);
+        background-color: var(--theme-color-background);
     }
 
     .global-bg-color {
-        background-color: var(--color-background);
+        background-color: var(--theme-color-background);
     }
 
     .text-primary {
-        text-color: var(--theme-color-text);
+        color: var(--theme-color-text);
     }
 
     .card-bg {
         background-color: var(--theme-color-card-bg);
+    }
+
+    .border-primary {
+        border-width: medium;
+        border-color: var(--theme-color-primary);
     }
 }

@@ -5,7 +5,7 @@
 
     function onLinkChange(newLink: string) {
         if (viewkey.length != 11) {
-            viewkey = newLink.split("v=")[1];
+            viewkey = newLink.split("?v=")[1];
         } else if (viewkey.length == 11) {
             viewkey = newLink;
         }
@@ -13,15 +13,11 @@
         console.log("Viewkey in the Thumbniail:", viewkey);
     }
 
-    // Subscribe to the store
-    $: {
-        $link; // Automatically tracks the store
-        onLinkChange($link); // Calls the function whenever the store changes
-    }
+    link.subscribe((value) => onLinkChange(value));
 </script>
 
 <div
-    class="w-2/3 mt-8 p-4 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
+    class="sm:w-3/4 mt-5 p-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
 >
     <div class="w-full h-0 pb-[56.25%] relative">
         {#if viewkey}
@@ -32,7 +28,7 @@
             />
         {:else}
             <div
-                class="absolute inset-0 flex items-center justify-center bg-gray-200 text-center"
+                class="absolute inset-0 flex items-center justify-center bg-gray-200 text-center rounded-lg"
             >
                 <span class="text-gray-800 text-xl font-semibold"
                     >Placeholder</span
