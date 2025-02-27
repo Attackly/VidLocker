@@ -8,7 +8,8 @@ use axum::response::Response;
 use axum::Json;
 use serde::Deserialize;
 use std::collections::HashMap;
-
+use std::fs;
+use std::path::PathBuf;
 #[derive(Deserialize)]
 pub struct PathRequest {
     path: String,
@@ -115,7 +116,7 @@ async fn list_files(Query(params): Query<HashMap<String, String>>) -> Json<Vec<F
 
     let mut files = Vec::new();
 
-    if let Ok(entries) = fs::read_dir(Path::new(&full_path)) {
+    if let Ok(entries) = fs::read_dir(PathBuf::from(&full_path)) {
         for entry in entries.flatten() {
             let metadata = entry.metadata().ok();
             let is_directory = metadata.map(|m| m.is_dir()).unwrap_or(false);
