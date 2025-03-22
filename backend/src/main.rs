@@ -9,7 +9,7 @@ use crate::{
     func::preperations::{create_output_dir, prepare_database},
     queue::queue_worker::queue_worker,
     routes::{
-        files::{create_dir_handler, dir_delete_handler, get_single_dir_size_handler},
+        files::{create_dir_handler, dir_delete_handler, get_single_dir_size_handler, list_files},
         misc::check_system_handler,
         video::simple_download_handler,
         yt::{mode_handler, title_handler},
@@ -71,7 +71,7 @@ async fn main() {
         .route("/api/downloadVideo", post(simple_download_handler))
         .route("/api/files/size", post(get_single_dir_size_handler))
         .route("/api/files/dir_delete", delete(dir_delete_handler))
-        .route("/api/files", get(todo!()))
+        .route("/api/files", get(list_files))
         .route("/api/yt/mode", get(mode_handler))
         .layer(cors.clone())
         .route("/api/yt/getTitle", post(title_handler))
