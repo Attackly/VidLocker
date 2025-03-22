@@ -1,6 +1,6 @@
+use crate::structs::file::FileEntry;
+use std::fs;
 use std::path::PathBuf;
-use tokio::fs;
-
 // TODO I dont like this error handling. Find a way to fix this
 pub async fn dir_create<'a>(path: String) -> Result<&'a str, u8> {
     // Prevent someone from creating a Dir using ./../../../../Somewhere
@@ -40,6 +40,38 @@ pub async fn get_dir_size(path: String) -> Option<u64> {
         Ok(s) => Some(s),
         Err(_) => None,
     }
+}
+
+/// List files in a directory
+/// Arg: path - PathBuf
+/// Return: Result<Vec<FileEntry>, u8>
+/// 1: Contains a ..
+pub async fn list_files(path: PathBuf) -> Result<Vec<FileEntry>, u8> {
+    let mut files = Vec::new();
+
+    if let Ok(entries) = fs::read_dir(path) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                // Here, `entry` is a `DirEntry`.
+                if let Ok(metadata) = entry.metadata() {
+                    // Now let's show our entry's permissions!
+                    println!("{:?}: {:?}", entry.path(), metadata.permissions());
+                } else {
+                    println!("Couldn't get metadata for {:?}", entry.path());
+                }
+
+                let file_type = entry.file_type()?;
+
+                files.push(FileEntry {
+                    name: entry.file_name().into_string().unwrap_or_default(),
+                    path: entry.path().to_string_lossy().into_owned(),
+                    is_directory: file_type.is_dir(),
+                });
+            }
+        }
+    }
+
+    Ok(files)
 }
 
 #[cfg(test)]

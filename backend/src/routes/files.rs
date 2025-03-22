@@ -107,8 +107,19 @@ pub async fn dir_delete_handler(Json(payload): Json<PathRequest>) -> Response {
     }
 }
 
-async fn list_files(Query(params): Query<HashMap<String, String>>) -> Json<Vec<FileEntry>> {
-    let base_path = "./uploads"; // Change this to your file directory
+pub async fn list_files(Query(params): Query<HashMap<String, String>>) -> Response {
+    let base_path = "./output";
+    let querried = params.get("dir").map(|d| d.as_str()).unwrap_or("/");
+    if querried.contains("..") {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(DefaultResponse {
+                status: StatusCode::BAD_REQUEST.as_u16(),
+                message: "Error getting path. Fuck you".to_string(),
+            }),
+        )
+            .into_response();
+    }
 
     // Get the requested directory from query params
     let dir = params.get("dir").map(|d| d.as_str()).unwrap_or("/");
@@ -130,5 +141,5 @@ async fn list_files(Query(params): Query<HashMap<String, String>>) -> Json<Vec<F
         }
     }
 
-    Json(files)
+    Json(files).into_response()
 }
