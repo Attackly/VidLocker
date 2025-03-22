@@ -9,7 +9,7 @@ pub async fn dir_create<'a>(path: String) -> Result<&'a str, u8> {
     }
     let path = PathBuf::from("output/".to_owned() + &*path);
 
-    match fs::create_dir_all(path).await {
+    match fs::create_dir_all(path) {
         Ok(_) => Ok("Dir Created"),
         Err(_) => Err(2),
     }
@@ -23,7 +23,7 @@ pub async fn dir_delete<'a>(path: String) -> Result<&'a str, u8> {
 
     let path = PathBuf::from("output/".to_owned() + &*path);
 
-    match fs::remove_dir_all(path).await {
+    match fs::remove_dir_all(path) {
         Ok(_) => Ok("Dir deleted"),
         Err(_) => Err(2),
     }
@@ -82,7 +82,7 @@ mod tests {
     #[tokio::test]
     async fn test_dir_creation() {
         if PathBuf::from("TESTS/RUST").exists() {
-            fs::remove_dir_all("TESTS/RUST".to_string()).await.unwrap();
+            fs::remove_dir_all("TESTS/RUST".to_string()).unwrap();
         }
         assert!(dir_create("TESTS/RUST".to_string()).await.is_ok());
     }
