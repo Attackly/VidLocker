@@ -1,4 +1,4 @@
-#[deny(warnings)]
+// #[deny(warnings)]
 mod func;
 mod queue;
 mod routes;

@@ -46,7 +46,7 @@ pub async fn get_dir_size(path: String) -> Option<u64> {
 /// Arg: path - PathBuf
 /// Return: Result<Vec<FileEntry>, u8>
 /// 1: Contains a ..
-pub async fn list_files(path: PathBuf) -> Result<Vec<FileEntry>, u8> {
+pub async fn list_files(path: PathBuf) -> Result<Vec<FileEntry>, std::io::Error> {
     let mut files = Vec::new();
 
     if let Ok(entries) = fs::read_dir(path) {

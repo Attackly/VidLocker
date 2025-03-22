@@ -67,7 +67,10 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_mode_handler_api() {
-        env::set_var("YT_API_KEY", "A_FAKE_KEY");
+        // TODO this scares me
+        unsafe {
+            env::set_var("YT_API_KEY", "A_FAKE_KEY");
+        }
         let response = mode_handler().await;
         assert_eq!(
             response.0,
@@ -81,7 +84,10 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_mode_handler_fallback() {
-        env::remove_var("YT_API_KEY");
+        // TODO this scares me
+        unsafe {
+            env::remove_var("YT_API_KEY");
+        }
         let response = mode_handler().await;
         assert_eq!(
             response.0,
