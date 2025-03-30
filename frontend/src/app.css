@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+html,
+body {
+    overscroll-behavior: none;
+    min-height: 100vh;
+    background-color: black; /* Change to your desired background color */
+}
+
 @theme {
     --color-primary: var(--theme-color-primary);
     --color-background: var(--theme-color-background);

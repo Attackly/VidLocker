@@ -32,10 +32,10 @@
 </script>
 
 <div
-    class="sm:w-3/4 mt-5 p-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
+    class="sm:w-3/4 lg:w-1/2 mt-5 p-3 mb-50 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
 >
     <div class="card-header">
-        <button on:click={() => (isOpen = !isOpen)}>
+        <button on:click={() => (isOpen = !isOpen)} class="w-full text-left">
             {#if isOpen}
                 🔼
             {:else}
