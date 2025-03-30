@@ -29,7 +29,7 @@
 </script>
 
 <div
-    class="sm:w-3/4 mt-5 p-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
+    class="sm:w-3/4 lg:w-1/2 mt-5 p-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
 >
     {#if title != ""}
         <h2 class="text-lg font-bold">{title}</h2>

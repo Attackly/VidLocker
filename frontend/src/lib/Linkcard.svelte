@@ -35,7 +35,7 @@
 </script>
 
 <div
-    class="card sm:w-3/4 xl:w-1/3 mt-8 p-4 text-primary rounded-lg overflow-hidden shadow-lg card-bg"
+    class="card sm:w-3/4 lg:w-1/2 mt-8 p-4 text-primary rounded-lg overflow-hidden shadow-lg card-bg"
 >
     <label class="label flex items-center space-x-4 text-primary">
         <span>Url</span>
