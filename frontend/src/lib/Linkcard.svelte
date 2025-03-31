@@ -8,18 +8,15 @@
         if (url.length == 11) {
             validation = "input-success";
             link.set(url);
-            console.log("Viewkey:", $link);
         } // full link with HTTPS or without HTTPS
         else if (url.length == 43 || url.length == 35) {
             validation = "input-success";
             link.set(url);
-            console.log("Viewkey:", $link);
         }
         // Shortend Youtube link
         else if (url.length == 28 || url.length == 20) {
             validation = "input-success";
             link.set(url);
-            console.log("Viewkey:", $link);
         }
         // Between Viewkey and link
         else if (url.length < 23 && url.length > 11) {
@@ -32,6 +29,8 @@
             return;
         }
     }
+
+    $: console.log("Updated Viewkey:", $link);
 </script>
 
 <div
