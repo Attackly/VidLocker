@@ -4,16 +4,23 @@
     // Function to run when the link store changes
 
     function onLinkChange(newLink: string) {
-        if (viewkey.length != 11) {
+        console.log("Link has changed in the Previewe");
+        if (newLink.length != 11) {
             viewkey = newLink.split("?v=")[1];
-        } else if (viewkey.length == 11) {
+        } else if (newLink.length == 11) {
             viewkey = newLink;
         }
 
         console.log("Viewkey in the Thumbniail:", viewkey);
     }
 
-    link.subscribe((value) => onLinkChange(value));
+    link.subscribe((value) => {
+        if (value === undefined) {
+            console.log("Link is undefined");
+        } else {
+            onLinkChange(value);
+        }
+    });
 </script>
 
 <div
