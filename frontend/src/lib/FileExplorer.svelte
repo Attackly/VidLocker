@@ -37,9 +37,9 @@
     <div class="card-header">
         <button on:click={() => (isOpen = !isOpen)} class="w-full text-left">
             {#if isOpen}
-                🔼
+                🔼 Close File Explorer
             {:else}
-                🔽
+                🔽 Open File Explorer
             {/if}
         </button>
     </div>
