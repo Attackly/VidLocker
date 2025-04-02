@@ -1,9 +1,30 @@
 <script lang="ts">
     import { onMount } from "svelte";
-
+    let exampledata = [
+        {
+            Name: "example",
+            Size: "100000",
+            file: "mp3",
+        },
+        {
+            Name: "example2",
+            Size: "200000",
+            file: "mp4",
+        },
+        {
+            Name: "example3",
+            Size: "300000",
+            file: "folder",
+        },
+    ];
     let isOpen = false;
     let data: any[] = [];
     let currentDir = "/";
+
+    function deleteFile(id: string) {
+        // TODO DELTE FILE
+        console.log(`Printing thing with id: ${id}`);
+    }
 
     async function get_Files() {
         // fetch files from server.
@@ -44,7 +65,8 @@
         </button>
     </div>
     {#if isOpen}
-        {#if data.length > 0}
+        <!-- TODO CHANGE THIS BACK --->
+        {#if exampledata.length > 0}
             <table class="w-full">
                 <thead class="">
                     <tr>
@@ -54,15 +76,28 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {#each data as row}
+                    <!-- TODO CHANGE THIS BACK --->
+                    {#each exampledata as row}
                         <tr>
-                            <td class="px-4 py-2">{row.Name}</td>
+                            {#if row.file !== "folder"}
+                                <td class="px-4 py-2"> {row.Name}</td>
+                            {:else}
+                                <td>
+                                    <button
+                                        class="rounded-full py-2 px-4 cursor-pointer"
+                                        type="button"
+                                    >
+                                        {row.Name}
+                                    </button>
+                                </td>
+                            {/if}
                             <td class="px-4 py-2">{row.Size}</td>
                             <td>
                                 <button
-                                    class="bg-red-700 p-1 rounded"
+                                    class="bg-red-700 p-1 rounded cursor-pointer"
                                     id="delete"
-                                    data-id={row.id}
+                                    data-id={row.Name}
+                                    on:click={() => deleteFile(row.Name)}
                                 >
                                     <svg
                                         class="w-5 h-5"
