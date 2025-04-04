@@ -26,17 +26,8 @@ Fire it up.
 #### Local
 Local Development (Optional)
 
-#### a. Backend
-1. Navigate to the backend directory:
-   ```bash
-   $ cd backend
-   ```
-2. Run the backend:
-   ```bash
-   $ cargo run
-   ```
 
-#### b. Frontend
+#### a. Frontend
 1. Navigate to the frontend directory:
    ```bash
    $ cd frontend
@@ -45,9 +36,23 @@ Local Development (Optional)
    ```bash
    $ npm install
    ```
+3. Build the frontend:
+   ```bash
+   $ npm run build
+   ```
+
+#### b. Backend
+1. Navigate to the backend directory:
+   ```bash
+   $ cd backend
+   ```
+2. Run the backend:
+   ```bash
+   $ cargo build
+   ```
 3. Start the development server:
    ```bash
-   $ npm run dev
+   $ cargo run
    ```
 
 ## License

@@ -1,3 +1,5 @@
+# This also makes no sense anymore we dont need the Frontend and Nginx container anymore
+
 services:
   vidlocker:
     build:
