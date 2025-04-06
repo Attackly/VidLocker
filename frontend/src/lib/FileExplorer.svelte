@@ -1,4 +1,5 @@
 <script lang="ts">
+    import "../app.css";
     import { onMount } from "svelte";
     let exampledata = [
         {
@@ -20,9 +21,18 @@
     let isOpen = false;
     let data: any[] = [];
     let currentDir = "/";
+    let currentDirArray = ["/"];
+
+    function updateCurrentDir(dir: string) {
+        let temp = currentDir.split("/");
+        currentDirArray = temp;
+        console.log(currentDirArray);
+        currentDir = dir;
+    }
 
     function cd(dir: string) {
-        currentDir = dir;
+        console.log("Changing directory to:", dir);
+        updateCurrentDir(dir);
         get_Files(dir);
     }
 
@@ -39,6 +49,24 @@
     }
 
     async function get_Files(dir: string) {
+        return [
+            {
+                Name: "example",
+                Size: "100000",
+                file: "mp3",
+            },
+            {
+                Name: "example2",
+                Size: "200000",
+                file: "mp4",
+            },
+            {
+                Name: "example3",
+                Size: "300000",
+                file: "folder",
+            },
+        ];
+
         try {
             const res = await fetch(
                 `/api/files?dir=${encodeURIComponent(dir)}`,
@@ -70,6 +98,30 @@
         </button>
     </div>
     {#if isOpen}
+        <ol
+            class="flex w-full flex-wrap items-center rounded-md px-4 py-2 text-primary text-lg"
+        >
+            <li
+                class="flex cursor-pointer items-center transition-colors duration-300 hover:text-slate-800 text-primary text-lg"
+            >
+                <a type="button" on:click={() => cd("/")}> / </a>
+            </li>
+            {#each currentDirArray as dir}
+                {#if dir != "" && dir != null && dir != undefined && dir != "/"}
+                    <li
+                        class="flex cursor-pointer items-center transition-colors duration-300 hover:text-slate-800 text-primary text-lg"
+                    >
+                        <span
+                            class="pointer-events-none mx-2 text-primary text-lg"
+                        >
+                            >
+                        </span>
+                        <a type="button" on:click={() => cd(dir)}>{dir}</a>
+                    </li>
+                {/if}
+            {/each}
+        </ol>
+
         {#await get_Files(currentDir) then data}
             <!-- TODO CHANGE THIS BACK --->
             {#if data.length > 0}
