@@ -3,8 +3,6 @@ mod func;
 mod queue;
 mod routes;
 mod structs;
-use std::time::Duration;
-
 use crate::{
     func::preperations::{create_output_dir, prepare_database},
     queue::queue_worker::queue_worker,
@@ -15,14 +13,19 @@ use crate::{
         yt::{mode_handler, title_handler},
     },
 };
+
 use axum::{
-    http::Method,
-    routing::{delete, get, post, put},
     Router,
+    handler::HandlerWithoutStateExt,
+    http::Method,
+    http::StatusCode,
+    routing::{delete, get, post, put},
 };
 use sqlx::postgres::PgPoolOptions;
+use std::time::Duration;
 use tokio::time::sleep;
 use tower_http::cors::{Any, CorsLayer};
+use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::{debug, info};
 
 #[tokio::main]
@@ -67,6 +70,7 @@ async fn main() {
         .allow_headers([axum::http::header::CONTENT_TYPE]); // Allow specific headers
 
     let app = Router::new()
+        .merge(front_end_router())
         .route("/test", get(check_system_handler))
         .route("/api/downloadVideo", post(simple_download_handler))
         .route("/api/files/size", post(get_single_dir_size_handler))
@@ -82,4 +86,17 @@ async fn main() {
 
     info!("Serving app now");
     axum::serve(listener, app).await.unwrap()
+}
+
+pub fn front_end_router() -> Router {
+    Router::new()
+        .fallback_service(ServeDir::new("dist").not_found_service(error_handler.into_service()))
+        .layer(TraceLayer::new_for_http())
+}
+
+async fn error_handler() -> (StatusCode, &'static str) {
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "Something went wrong accessing static files...",
+    )
 }

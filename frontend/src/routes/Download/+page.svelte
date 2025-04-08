@@ -4,7 +4,7 @@
     import Thumbnailpreview from "$lib/Thumbnailpreview.svelte";
     import VideoDetails from "$lib/VideoDetails.svelte";
     import FileExplorer from "$lib/FileExplorer.svelte";
-
+    import "../../app.css";
     import { link } from "$lib/stores/linkstore";
 </script>
 
@@ -14,4 +14,8 @@
     <Thumbnailpreview />
     <VideoDetails />
     <FileExplorer />
+
+    <button type="button" class="bg-primary w-1/2 mb-30 border rounded">
+        Download
+    </button>t
 </div>

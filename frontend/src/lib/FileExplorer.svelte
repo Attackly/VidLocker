@@ -1,6 +1,8 @@
 <script lang="ts">
     import "../app.css";
     import { onMount } from "svelte";
+    const illegalChars = "/\0";
+    console.log(illegalChars);
     let exampledata = [
         {
             Name: "example",
@@ -22,6 +24,7 @@
     let data: any[] = [];
     let currentDir = "/";
     let currentDirArray = ["/"];
+    let newFolderName = "";
 
     function updateCurrentDir(dir: string) {
         let temp = currentDir.split("/");
@@ -86,7 +89,7 @@
 </script>
 
 <div
-    class="sm:w-3/4 lg:w-1/2 mt-5 p-3 mb-50 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
+    class="sm:w-3/4 lg:w-1/2 mt-5 p-3 mb-5 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
 >
     <div class="card-header">
         <button on:click={() => (isOpen = !isOpen)} class="w-full text-left">
@@ -104,7 +107,7 @@
             <li
                 class="flex cursor-pointer items-center transition-colors duration-300 hover:text-slate-800 text-primary text-lg"
             >
-                <a type="button" on:click={() => cd("/")}> / </a>
+                <button type="button" on:click={() => cd("/")}> / </button>
             </li>
             {#each currentDirArray as dir}
                 {#if dir != "" && dir != null && dir != undefined && dir != "/"}
@@ -116,7 +119,9 @@
                         >
                             >
                         </span>
-                        <a type="button" on:click={() => cd(dir)}>{dir}</a>
+                        <button type="button" on:click={() => cd(dir)}>
+                            {dir}
+                        </button>
                     </li>
                 {/if}
             {/each}
@@ -173,6 +178,20 @@
                         {/each}
                     </tbody>
                 </table>
+
+                <div class="pt-4">
+                    <label for="newFolderName">Folder Name</label>
+                    <div class="flex w-full">
+                        <input
+                            class="w-2/3 border rounded"
+                            id="newFolderName"
+                            bind:value={newFolderName}
+                        />
+                        <button class="w-1/3 bg-primary"
+                            >Create new Folder</button
+                        >
+                    </div>
+                </div>
             {:else}
                 <div
                     class="p-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300"
