@@ -2,8 +2,13 @@
     let title = "";
     let uploader = "";
     let date: string;
+    import { link } from "$lib/stores/linkstore";
 
     async function getYouTubeTitle(viewkey: string) {
+        if (viewkey.length != 11) {
+            viewkey = viewkey.split("?v=")[1];
+        }
+
         const response = await fetch("/api/yt/getTitle", {
             method: "POST",
             headers: {
@@ -26,6 +31,14 @@
 
         date = video_published_at.toLocaleString();
     }
+
+    link.subscribe((value) => {
+        if (value === undefined) {
+            console.log("Link is undefined");
+        } else {
+            getYouTubeTitle(value);
+        }
+    });
 </script>
 
 <div

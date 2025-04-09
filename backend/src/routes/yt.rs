@@ -1,8 +1,8 @@
 use super::responses::ModeResponse;
 use crate::func::yt::VideoResp;
 use crate::func::yt::{get_mode, get_title};
-use axum::http::StatusCode;
 use axum::Json;
+use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -35,19 +35,12 @@ pub async fn mode_handler() -> Json<ModeResponse> {
 
 #[axum_macros::debug_handler]
 pub async fn title_handler(Json(payload): Json<VideoRequest>) -> Json<VideoResponse> {
-    if payload.url.len() != 11 {
-        return Json(VideoResponse {
-            status: StatusCode::BAD_REQUEST.as_u16(),
-            video: None,
-        });
-    }
-
     match get_title(&payload.url).await {
         Some(video) => {
             return Json(VideoResponse {
                 status: StatusCode::OK.as_u16(),
                 video: Some(video),
-            })
+            });
         }
         None => {
             return Json(VideoResponse {

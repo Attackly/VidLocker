@@ -4,6 +4,7 @@ backend/target
 backend/output/
 backend/.env
 backend/example.json
+backend/dist
 docker-compose.yaml
 
 frontend/node_modules
