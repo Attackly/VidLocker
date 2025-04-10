@@ -2,9 +2,9 @@ use serde::Serialize;
 use serde::Serializer;
 use serde_json::Value;
 use serde_with::serde_as;
+use sqlx::PgPool;
 use sqlx::types::chrono::{DateTime, Utc};
 use sqlx::types::time::OffsetDateTime;
-use sqlx::PgPool;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
@@ -59,10 +59,14 @@ impl Video {
         )
         .unwrap();
 
-        let timestamp = json
-            .get("timestamp")
-            .and_then(|f| f.as_i64())
-            .expect("Error getting and parsing timestamp");
+        let timestamp = json.get("timestamp").and_then(|f| f.as_i64()).expect(
+            format!(
+                "Error getting and parsing timestamp of video: {}; Tried to convert Timestamp {}",
+                viewkey,
+                json.get("timestamp").unwrap()
+            )
+            .as_str(),
+        );
 
         let published_at = Some(DateTime::from_timestamp(timestamp, 0).expect("Invalid timestamp"));
 

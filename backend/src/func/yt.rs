@@ -17,7 +17,7 @@ pub fn get_mode() -> String {
 pub async fn get_title(viewkey: &str) -> Option<VideoResp> {
     match env::var("YT_API_KEY") {
         Ok(key) => return get_title_api(viewkey, key).await,
-        Err(_) => None,
+        Err(_) => (),
     };
 
     let vid = Video::from_yt_viewkey(viewkey.to_string());
