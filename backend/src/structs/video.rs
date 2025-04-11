@@ -8,7 +8,9 @@ use sqlx::types::time::OffsetDateTime;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
+use time::serde::timestamp;
 use tracing::info;
+use tracing::warn;
 use url::Url;
 
 #[serde_as]
@@ -59,16 +61,16 @@ impl Video {
         )
         .unwrap();
 
-        let timestamp = json.get("timestamp").and_then(|f| f.as_i64()).expect(
-            format!(
-                "Error getting and parsing timestamp of video: {}; Tried to convert Timestamp {}",
-                viewkey,
-                json.get("timestamp").unwrap()
-            )
-            .as_str(),
-        );
-
-        let published_at = Some(DateTime::from_timestamp(timestamp, 0).expect("Invalid timestamp"));
+        let timestamp;
+        let published_at;
+        if json.get("timestamp").is_none() {
+            warn!("Timestamp contains None");
+            published_at = None;
+        } else {
+            timestamp = json.get("timestamp").and_then(|f| f.as_i64());
+            published_at =
+                Some(DateTime::from_timestamp(timestamp.unwrap(), 0).expect("Invalid timestamp"));
+        }
 
         let channel_id = match json
             .get("channel_id")

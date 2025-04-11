@@ -3,23 +3,7 @@
     import { onMount } from "svelte";
     const illegalChars = "/\0";
     console.log(illegalChars);
-    let exampledata = [
-        {
-            Name: "example",
-            Size: "100000",
-            file: "mp3",
-        },
-        {
-            Name: "example2",
-            Size: "200000",
-            file: "mp4",
-        },
-        {
-            Name: "example3",
-            Size: "300000",
-            file: "folder",
-        },
-    ];
+
     let isOpen = false;
     let data: any[] = [];
     let currentDir = "/";
@@ -33,10 +17,18 @@
         currentDir = dir;
     }
 
-    function cd(dir: string) {
+    function formatBytes(bytes: number) {
+        const units = ["Bytes", "KB", "MB", "GB", "TB"];
+        if (bytes === 0) return "0 Bytes";
+
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, i)).toFixed(2) + " " + units[i];
+    }
+
+    async function cd(dir: string) {
         console.log("Changing directory to:", dir);
         updateCurrentDir(dir);
-        get_Files(dir);
+        data = await get_Files(dir);
     }
 
     async function deleteFile(id: string) {
@@ -52,38 +44,27 @@
     }
 
     async function get_Files(dir: string) {
-        return [
-            {
-                Name: "example",
-                Size: "100000",
-                file: "mp3",
-            },
-            {
-                Name: "example2",
-                Size: "200000",
-                file: "mp4",
-            },
-            {
-                Name: "example3",
-                Size: "300000",
-                file: "folder",
-            },
-        ];
-
         try {
             const res = await fetch(
                 `/api/files?dir=${encodeURIComponent(dir)}`,
             );
-            if (!res.ok) {
-                console.log("Message ${res.message}");
-                throw new Error("Request failed with Status: ${res.status}");
-            }
-            const raw_data = await res.json();
 
-            return raw_data.files;
+            if (!res.ok) {
+                throw new Error(`Request failed with status: ${res.status}`);
+            }
+
+            const raw_data = await res.json();
+            console.log("First file:", raw_data[0]);
+
+            if (!Array.isArray(raw_data)) {
+                console.error("Expected an array, got:", raw_data);
+                return [];
+            }
+
+            return raw_data;
         } catch (error) {
-            console.error("Error Fetching or parsing response:", error);
-            return null;
+            console.error("Error fetching or parsing response:", error);
+            return [];
         }
     }
 </script>
@@ -131,7 +112,7 @@
             <!-- TODO CHANGE THIS BACK --->
             {#if data.length > 0}
                 <table class="w-full">
-                    <thead class="">
+                    <thead class="border-b">
                         <tr>
                             <th class="px-4 py-2 text-left">Name</th>
                             <th class="px-4 py-2 text-left">Size</th>
@@ -141,27 +122,29 @@
                     <tbody>
                         <!-- TODO CHANGE THIS BACK --->
                         {#each data as row}
-                            <tr>
+                            <tr class="row-bg-1 odd:row-bg-2">
                                 {#if row.file !== "folder"}
-                                    <td class="px-4 py-2"> {row.Name}</td>
+                                    <td class="px-4 py-2"> {row.name}</td>
                                 {:else}
                                     <td>
                                         <button
                                             class="rounded-full py-2 px-4 cursor-pointer"
                                             type="button"
-                                            on:click={() => cd(row.Name)}
+                                            on:click={() => cd(row.name)}
                                         >
-                                            {row.Name}
+                                            {row.name}
                                         </button>
                                     </td>
                                 {/if}
-                                <td class="px-4 py-2">{row.Size}</td>
-                                <td>
+                                <td class="px-4 py-2"
+                                    >{formatBytes(row.file_size)}</td
+                                >
+                                <td class="text-center">
                                     <button
-                                        class="bg-red-700 p-1 rounded cursor-pointer"
+                                        class="bg-red-700 p-1 rounded cursor-pointer items-center"
                                         id="delete"
-                                        data-id={row.Name}
-                                        on:click={() => deleteFile(row.Name)}
+                                        data-id={row.name}
+                                        on:click={() => deleteFile(row.name)}
                                     >
                                         <svg
                                             class="w-5 h-5"
@@ -187,7 +170,7 @@
                             id="newFolderName"
                             bind:value={newFolderName}
                         />
-                        <button class="w-1/3 bg-primary"
+                        <button class="w-1/3 button-bg"
                             >Create new Folder</button
                         >
                     </div>

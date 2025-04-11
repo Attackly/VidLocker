@@ -5,7 +5,7 @@ import { build } from "vite";
 const config = {
   kit: {
     adapter: adapter({
-      fallback: "index.html", // ✅ Enables SPA mode
+      fallback: "index.html",
     }),
     prerender: {
       entries: [], // ✅ Stops Svelte from forcing full prerendering

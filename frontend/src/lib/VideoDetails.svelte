@@ -9,6 +9,11 @@
             viewkey = viewkey.split("?v=")[1];
         }
 
+        if (viewkey === undefined) {
+            console.log("Viewkey is undefined");
+            return;
+        }
+
         const response = await fetch("/api/yt/getTitle", {
             method: "POST",
             headers: {

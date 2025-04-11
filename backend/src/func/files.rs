@@ -61,8 +61,9 @@ pub async fn list_files(path: PathBuf) -> Result<Vec<FileEntry>, std::io::Error>
                 }
 
                 let file_type = entry.file_type()?;
-
+                let file_size = entry.metadata().unwrap().len();
                 files.push(FileEntry {
+                    file_size,
                     name: entry.file_name().into_string().unwrap_or_default(),
                     path: entry.path().to_string_lossy().into_owned(),
                     is_directory: file_type.is_dir(),
@@ -114,9 +115,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_dir_size_failing_non_existant() {
-        assert!(get_dir_size("../../should_fail".to_string())
-            .await
-            .is_none());
+        assert!(
+            get_dir_size("../../should_fail".to_string())
+                .await
+                .is_none()
+        );
     }
 
     #[tokio::test]

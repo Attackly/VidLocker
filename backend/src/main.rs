@@ -17,10 +17,11 @@ use crate::{
 use axum::{
     Router,
     handler::HandlerWithoutStateExt,
-    http::Method,
-    http::StatusCode,
+    http::{Method, StatusCode},
+    response::Redirect,
     routing::{delete, get, post, put},
 };
+use reqwest::Response;
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -94,9 +95,6 @@ pub fn front_end_router() -> Router {
         .layer(TraceLayer::new_for_http())
 }
 
-async fn error_handler() -> (StatusCode, &'static str) {
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        "Something went wrong accessing static files...",
-    )
+async fn error_handler() -> Redirect {
+    Redirect::permanent("/")
 }

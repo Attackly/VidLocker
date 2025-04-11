@@ -17,5 +17,5 @@
 
     <button type="button" class="bg-primary w-1/2 mb-30 border rounded">
         Download
-    </button>t
+    </button>
 </div>

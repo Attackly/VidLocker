@@ -1,11 +1,11 @@
 use crate::func::files::{dir_create, dir_delete, get_dir_size};
 use crate::routes::responses::{DefaultResponse, DirSizeResponse};
 use crate::structs::file::FileEntry;
+use axum::Json;
 use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use axum::Json;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
@@ -130,13 +130,15 @@ pub async fn list_files(Query(params): Query<HashMap<String, String>>) -> Respon
     if let Ok(entries) = fs::read_dir(PathBuf::from(&full_path)) {
         for entry in entries.flatten() {
             let metadata = entry.metadata().ok();
-            let is_directory = metadata.map(|m| m.is_dir()).unwrap_or(false);
+            let is_directory = metadata.clone().map(|m| m.is_dir()).unwrap_or(false);
             let name = entry.file_name().into_string().unwrap_or_default();
+            let file_size = metadata.map(|m| m.len()).unwrap_or(0);
 
             files.push(FileEntry {
                 name,
                 path: format!("{}/{}", dir, entry.file_name().to_string_lossy()),
                 is_directory,
+                file_size,
             });
         }
     }
