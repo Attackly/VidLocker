@@ -14,19 +14,27 @@ use crate::{
     },
 };
 
+use axum::http::{Request, StatusCode};
+use axum::response::IntoResponse;
+use axum::response::Response;
+use std::{convert::Infallible, net::SocketAddr, path::PathBuf};
+use tokio::fs;
+use tower::service_fn;
+use tower_http::services::ServeDir;
+
 use axum::{
     Router,
+    body::Body,
     handler::HandlerWithoutStateExt,
-    http::{Method, StatusCode},
+    http::Method,
     response::Redirect,
     routing::{delete, get, post, put},
 };
-use reqwest::Response;
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 use tokio::time::sleep;
 use tower_http::cors::{Any, CorsLayer};
-use tower_http::{services::ServeDir, trace::TraceLayer};
+use tower_http::trace::TraceLayer;
 use tracing::{debug, info};
 
 #[tokio::main]
@@ -70,8 +78,11 @@ async fn main() {
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE]) // Specify allowed methods
         .allow_headers([axum::http::header::CONTENT_TYPE]); // Allow specific headers
 
+    let static_files =
+        tower_http::services::ServeDir::new("dist").not_found_service(service_fn(fallback_handler));
+
     let app = Router::new()
-        .merge(front_end_router())
+        .fallback_service(static_files)
         .route("/test", get(check_system_handler))
         .route("/api/downloadVideo", post(simple_download_handler))
         .route("/api/files/size", post(get_single_dir_size_handler))
@@ -89,12 +100,13 @@ async fn main() {
     axum::serve(listener, app).await.unwrap()
 }
 
-pub fn front_end_router() -> Router {
-    Router::new()
-        .fallback_service(ServeDir::new("dist").not_found_service(error_handler.into_service()))
-        .layer(TraceLayer::new_for_http())
-}
+async fn fallback_handler(_req: Request<Body>) -> Result<Response, Infallible> {
+    let html = fs::read_to_string("dist/index.html")
+        .await
+        .unwrap_or_else(|_| "<h1>500 - Internal Server Error</h1>".to_string());
 
-async fn error_handler() -> Redirect {
-    Redirect::permanent("/")
+    Ok(Response::builder()
+        .header("Content-Type", "text/html")
+        .body(Body::from(html))
+        .unwrap())
 }
