@@ -14,27 +14,21 @@ use crate::{
     },
 };
 
-use axum::http::{Request, StatusCode};
-use axum::response::IntoResponse;
 use axum::response::Response;
-use std::{convert::Infallible, net::SocketAddr, path::PathBuf};
+use std::convert::Infallible;
 use tokio::fs;
 use tower::service_fn;
-use tower_http::services::ServeDir;
 
 use axum::{
     Router,
     body::Body,
-    handler::HandlerWithoutStateExt,
-    http::Method,
-    response::Redirect,
+    http::{Method, Request},
     routing::{delete, get, post, put},
 };
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 use tokio::time::sleep;
 use tower_http::cors::{Any, CorsLayer};
-use tower_http::trace::TraceLayer;
 use tracing::{debug, info};
 
 #[tokio::main]
@@ -74,9 +68,9 @@ async fn main() {
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
-        .allow_origin(Any) // Allow any origin
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE]) // Specify allowed methods
-        .allow_headers([axum::http::header::CONTENT_TYPE]); // Allow specific headers
+        .allow_origin(Any)
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_headers([axum::http::header::CONTENT_TYPE]);
 
     let static_files =
         tower_http::services::ServeDir::new("dist").not_found_service(service_fn(fallback_handler));

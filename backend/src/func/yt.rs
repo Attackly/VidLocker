@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use reqwest;
 use serde::Serialize;
 use serde_json::Value;
-use std::{env, process::Command};
+use std::env;
 
 use crate::structs::video::Video;
 

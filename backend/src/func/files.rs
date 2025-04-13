@@ -1,4 +1,3 @@
-use crate::structs::file::FileEntry;
 use std::fs;
 use std::path::PathBuf;
 // TODO I dont like this error handling. Find a way to fix this
@@ -46,34 +45,6 @@ pub async fn get_dir_size(path: String) -> Option<u64> {
 /// Arg: path - PathBuf
 /// Return: Result<Vec<FileEntry>, u8>
 /// 1: Contains a ..
-pub async fn list_files(path: PathBuf) -> Result<Vec<FileEntry>, std::io::Error> {
-    let mut files = Vec::new();
-
-    if let Ok(entries) = fs::read_dir(path) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                // Here, `entry` is a `DirEntry`.
-                if let Ok(metadata) = entry.metadata() {
-                    // Now let's show our entry's permissions!
-                    println!("{:?}: {:?}", entry.path(), metadata.permissions());
-                } else {
-                    println!("Couldn't get metadata for {:?}", entry.path());
-                }
-
-                let file_type = entry.file_type()?;
-                let file_size = entry.metadata().unwrap().len();
-                files.push(FileEntry {
-                    file_size,
-                    name: entry.file_name().into_string().unwrap_or_default(),
-                    path: entry.path().to_string_lossy().into_owned(),
-                    is_directory: file_type.is_dir(),
-                });
-            }
-        }
-    }
-
-    Ok(files)
-}
 
 #[cfg(test)]
 mod tests {
