@@ -1,7 +1,7 @@
 use crate::func::video::download_video_simple_ydl;
-use sqlx::postgres::Postgres;
 use sqlx::PgPool;
 use sqlx::Transaction;
+use sqlx::postgres::Postgres;
 use tracing::{debug, info};
 
 pub async fn queue_worker(id: u32, pool: PgPool) {
@@ -26,6 +26,19 @@ pub async fn queue_worker(id: u32, pool: PgPool) {
 async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
     let mut tx: Transaction<'_, Postgres> =
         pool.begin().await.expect("Failed to begin transaction");
+
+    // TODO Lookup if the video has been downloaded already.
+
+    let alreadyDownloaded = sqlx::query!("SELECT Id, viewkey FROM videos")
+        .fetch_optional(&mut *tx)
+        .await;
+    if alreadyDownloaded.unwrap().is_none() {
+        info!("Video has already been downloaded.")
+
+        // Handle if it has been downloaded already
+        //
+        Some((0, "0".to_string()))
+    }
 
     let row = sqlx::query!(
         r#"SELECT

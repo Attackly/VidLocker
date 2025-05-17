@@ -6,16 +6,49 @@
     import FileExplorer from "$lib/FileExplorer.svelte";
     import "../../app.css";
     import { link } from "$lib/stores/linkstore";
+    import { send } from "$lib/stores/notification";
+
+    async function download() {
+        if ($link.length < 28) {
+            // TODO make valid checks better
+            send("The link is to short to be valid.", "warning");
+            return;
+        }
+
+        const res = await fetch("/api/downloadVideo", {
+            method: "POST",
+            body: JSON.stringify({ url: $link }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) {
+            console.log(
+                `There was an error downloading the Video: ${res.body}`,
+            );
+            send(
+                `There was an error downloading the Video: ${res.body}`,
+                "error",
+            );
+        } else {
+            send("Video has been queued for download", "success");
+            return;
+        }
+    }
 </script>
 
-<p>Current link {link}</p>
 <div class="flex flex-col items-center" data-theme={theme}>
     <Linkcard />
     <Thumbnailpreview />
     <VideoDetails />
     <FileExplorer />
 
-    <button type="button" class="bg-primary w-1/2 mb-30 border rounded">
+    <button
+        on:click={download}
+        type="button"
+        class="button-bg w-1/2 mb-30 rounded text-primary"
+    >
         Download
     </button>
 </div>

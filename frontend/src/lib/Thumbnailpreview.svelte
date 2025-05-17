@@ -38,7 +38,7 @@
                 class="absolute inset-0 flex items-center justify-center bg-gray-200 text-center rounded-lg"
             >
                 <span class="text-gray-800 text-xl font-semibold"
-                    >Placeholder</span
+                    >Insert a link above</span
                 >
             </div>
         {/if}

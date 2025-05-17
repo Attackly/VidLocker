@@ -7,7 +7,7 @@ body {
     background-color: black; /* Change to your desired background color */
 }
 
-@theme {
+:root {
     --color-primary: var(--theme-color-primary);
     --color-background: var(--theme-color-background);
 }
@@ -26,8 +26,11 @@ body {
         --theme-color-button-bg: #4f4a52;
         --theme-color-button-secondary: #a6884e;
         --theme-color-warning: #9a2f3f;
-        --theme-color-row-bg-1: #181a20;
-        --theme-color-row-bg-2: #1f2230;
+        --theme-color-info: #0000ff;
+        --theme-color-error: #ff0000;
+        --theme-color-success: #00ff00;
+        --theme-color-row-bg-1: #151417;
+        --theme-color-row-bg-2: #1d181f;
     }
 
     [data-theme="bird"] {
@@ -38,14 +41,33 @@ body {
         --theme-color-button-bg: #5c4b8c;
         --theme-color-button-secondary: #2e3a87;
         --theme-color-warning: #b44a64;
-        --theme-color-row-bg-1: #151417;
-        --theme-color-row-bg-2: #1d181f;
+        --theme-color-error: #ff0000;
+        --theme-color-info: #0000ff;
+        --theme-color-success: #00ff00;
+        --theme-color-row-bg-1: #181a20;
+        --theme-color-row-bg-2: #1f2230;
     }
 }
 
 @layer utilities {
+    .bg-warning {
+        background-color: var(--theme-color-warning);
+    }
+
+    .bg-success {
+        background-color: var(--theme-color-success);
+    }
+
+    .bg-info {
+        background-color: var(--theme-color-info);
+    }
+
+    .bg-error {
+        background-color: var(--theme-color-error);
+    }
+
     .bg-primary {
-        background-color: var(--theme-color-background);
+        background-color: var(--theme-color-primary);
     }
 
     .global-bg-color {
@@ -75,5 +97,9 @@ body {
 
     tr:nth-child(odd) {
         background-color: var(--theme-color-row-bg-2);
+    }
+
+    .svg-primary {
+        fill: var(--theme-color-primary);
     }
 }

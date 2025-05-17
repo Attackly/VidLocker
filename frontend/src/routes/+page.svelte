@@ -1,7 +1,8 @@
 <script>
     import { theme } from "$lib/stores/theme";
+    import Mainmenucard from "$lib/mainmenucard.svelte";
 </script>
 
-<div class="min-h-screen p-6" data-theme={theme}>
-    <div class="bg-primary p-4 mt-4 text-white">Hallo wie geht es dir so?</div>
+<div class="p-6 flex items-center justify-center" data-theme={theme}>
+    <Mainmenucard />
 </div>
