@@ -33,11 +33,11 @@ async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
         .fetch_optional(&mut *tx)
         .await;
     if alreadyDownloaded.unwrap().is_none() {
-        info!("Video has already been downloaded.")
+        info!("Video has already been downloaded.");
 
         // Handle if it has been downloaded already
         //
-        Some((0, "0".to_string()))
+        return Some((0, "0".to_string()));
     }
 
     let row = sqlx::query!(
