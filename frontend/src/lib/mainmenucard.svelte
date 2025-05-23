@@ -6,15 +6,16 @@
 >
     Quick download a video
 
-    <div class="pb-3">
-        <label for="download">Link</label>
-        <input
-            type="link"
-            name="download"
-            id="link"
-            class="w-full border border-primary rounded-md"
-        />
-    </div>
+    <div class="pb-3 flex items-center space-x-2">
+    <label for="link" class="whitespace-nowrap mb-2">Link</label>
+    <input
+        type="url"
+        name="download"
+        id="link"
+        class="flex-1 border border-primary rounded-md"
+    />
+</div>
+
 
     <button class="w-full rounded-md bg-primary"> Download </button>
 </div>

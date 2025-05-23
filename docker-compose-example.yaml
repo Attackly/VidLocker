@@ -9,7 +9,7 @@ services:
       - MODE=queue
       - DATABASE_URL=postgresql://vidlocker:<your_secure_password>@db:5432/vidlocker
     ports:
-      - 3001:3001
+      - "3001:3001"
     depends_on:
       db:
         condition: service_healthy
@@ -24,7 +24,7 @@ services:
       - POSTGRES_PASSWORD=<your_secure_password>
       - POSTGRES_DB=vidlocker
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:

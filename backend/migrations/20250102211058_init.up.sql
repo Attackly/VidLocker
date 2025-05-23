@@ -1,3 +1,9 @@
+-- noinspection SpellCheckingInspectionForFile
+
+-- noinspection SpellCheckingInspectionForFile
+
+-- noinspection SpellCheckingInspectionForFile
+
 -- Add up migration script here
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,

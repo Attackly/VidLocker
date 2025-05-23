@@ -41,6 +41,7 @@ pub async fn get_dir_size(path: String) -> Option<u64> {
     }
 }
 
+//noinspection GrazieInspection
 /// List files in a directory
 /// Arg: path - PathBuf
 /// Return: Result<Vec<FileEntry>, u8>

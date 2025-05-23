@@ -101,6 +101,5 @@ async fn fallback_handler(_req: Request<Body>) -> Result<Response, Infallible> {
 
     Ok(Response::builder()
         .header("Content-Type", "text/html")
-        .body(Body::from(html))
-        .unwrap())
+        .body(Body::from(html)).unwrap())
 }

@@ -136,6 +136,9 @@
                                         ></td
                                     >
                                     <td class="px-4 py-2"> {row.name}</td>
+                                    <td class="px-4 py-2"
+                                    >{formatBytes(row.file_size)}</td>
+                                    
                                 {:else}
                                     <td class="py-2 px-2"
                                         ><svg
@@ -156,10 +159,9 @@
                                             {row.name}
                                         </button>
                                     </td>
-                                {/if}
-                                <td class="px-4 py-2"
-                                    >{formatBytes(row.file_size)}</td
-                                >
+                                    <td class="px-4 py-2"
+                                    >{formatBytes(row.file_size - 16)}</td>
+                                    {/if}
                                 <td class="text-center">
                                     <button
                                         class="bg-red-700 p-1 rounded cursor-pointer items-center"

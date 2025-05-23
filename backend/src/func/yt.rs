@@ -21,7 +21,7 @@ pub async fn get_title(viewkey: &str) -> Option<VideoResp> {
     };
 
     let vid = Video::from_yt_viewkey(viewkey.to_string());
-    return Some(VideoResp {
+    Some(VideoResp {
         viewkey: vid.viewkey,
         title: vid.title,
         channel_id: vid.channel_id,
@@ -29,7 +29,7 @@ pub async fn get_title(viewkey: &str) -> Option<VideoResp> {
         channel_name: vid.channel_name,
         published_at: vid.published_at,
         tags: vid.tags,
-    });
+    })
 }
 
 async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {

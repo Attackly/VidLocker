@@ -52,7 +52,7 @@
     {#if title != ""}
         <h2 class="text-lg font-bold">{title}</h2>
     {:else}
-        <div class="w-64 h-5 bg-gray-300 rounded animate-pulse"></div>
+        <div class="w-3/5 h-5 bg-gray-300 rounded animate-pulse"></div>
     {/if}
     <p class="text-md text-gray-300">
         Uploaded by: <span class="font-semibold">{uploader}</span>

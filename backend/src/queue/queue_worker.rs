@@ -7,6 +7,9 @@ use tracing::{debug, info};
 pub async fn queue_worker(id: u32, pool: PgPool) {
     loop {
         match get_task(&pool).await {
+            Some((0, s)) if s == "0" => {
+                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            }
             Some((task_id, url)) => {
                 info!("Found a Task. Will download. task with id: {task_id}");
                 download_video_simple_ydl(url).await;
@@ -29,23 +32,14 @@ async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
 
     // TODO Lookup if the video has been downloaded already.
 
-    let alreadyDownloaded = sqlx::query!("SELECT Id, viewkey FROM videos")
-        .fetch_optional(&mut *tx)
-        .await;
-    if alreadyDownloaded.unwrap().is_none() {
-        info!("Video has already been downloaded.");
-
-        // Handle if it has been downloaded already
-        //
-        return Some((0, "0".to_string()));
-    }
 
     let row = sqlx::query!(
         r#"SELECT
             queue.id AS queue_id,
             queue.video_id,
             queue.priority,
-            videos.url
+            videos.url,
+            videos.viewkey
         FROM
             queue
         JOIN
@@ -61,24 +55,33 @@ async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
     .await
     .expect("Failed to fetch task");
 
-    if let Some(row) = row {
-        let task_id: i32 = row.queue_id;
-        let url: String = row.url;
+    let row = row.unwrap();
+    let viewkey = row.viewkey.unwrap();
+    let already_downloaded = sqlx::query!("SELECT Id, viewkey FROM videos WHERE viewkey = $1", &viewkey)
+        .fetch_optional(&mut *tx)
+        .await;
+    if already_downloaded.unwrap().is_none() {
+        info!("Video has already been downloaded.");
 
-        sqlx::query!(
-            "UPDATE queue SET task_status = 'in_progress' WHERE id = $1",
-            task_id
-        )
-        .execute(&mut *tx)
-        .await
-        .expect("Failed to update task status");
-
-        tx.commit().await.expect("Failed to commit transaction");
-
-        Some((task_id, url))
-    } else {
-        None
+        // Handle if it has been downloaded already
+        //
+        return Some((0, "0".to_string()));
     }
+
+    let task_id: i32 = row.queue_id;
+    let url: String = row.url;
+
+    sqlx::query!(
+        "UPDATE queue SET task_status = 'in_progress' WHERE id = $1",
+        task_id
+    )
+    .execute(&mut *tx)
+    .await
+    .expect("Failed to update task status");
+
+    tx.commit().await.expect("Failed to commit transaction");
+
+    Some((task_id, url))
 }
 
 async fn mark_task_completed(pool: &PgPool, task_id: i32) -> Result<(), sqlx::Error> {
