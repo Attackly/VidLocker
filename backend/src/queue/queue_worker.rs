@@ -4,23 +4,26 @@ use sqlx::Transaction;
 use sqlx::postgres::Postgres;
 use tracing::{debug, info};
 
-pub async fn queue_worker(id: u32, pool: PgPool) {
+pub async fn queue_worker(id: u32, pool: PgPool, interval: u64 ) {
+    let mut poll = tokio::time::interval(std::time::Duration::from_secs(interval));
     loop {
+
+        poll.tick().await;
+
         match get_task(&pool).await {
             Some((0, s)) if s == "0" => {
                 tokio::time::sleep(std::time::Duration::from_secs(10)).await;
             }
             Some((task_id, url)) => {
-                info!("Found a Task. Will download. task with id: {task_id}");
+                info!("Worker {id} Found a Task. Will download. task with id: {task_id}");
                 download_video_simple_ydl(url).await;
 
                 mark_task_completed(&pool, task_id)
                     .await
-                    .expect("Failed to mark task as completed");
+                    .expect("Worker {id} Failed to mark task as completed");
             }
             None => {
                 debug!("Worker {} is idle", id);
-                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
             }
         }
     }
@@ -55,8 +58,14 @@ async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
     .await
     .expect("Failed to fetch task");
 
+    if row.is_none() {
+        info!("No tasks found in the queue.");
+        return None;
+    }
+
     let row = row.unwrap();
-    let viewkey = row.viewkey.unwrap();
+
+    let viewkey: String = row.viewkey.unwrap();
     let already_downloaded = sqlx::query!("SELECT Id, viewkey FROM videos WHERE viewkey = $1", &viewkey)
         .fetch_optional(&mut *tx)
         .await;

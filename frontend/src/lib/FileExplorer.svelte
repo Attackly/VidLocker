@@ -209,6 +209,4 @@
         {/await}
     {/if}
 </div>
-{#if isOpen}
-    <div class="lg:w-1/3 mt-8 card p-4"></div>
-{/if}
+

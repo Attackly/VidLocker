@@ -18,7 +18,7 @@ build_rust:
 build_all: build_frontend build_rust
 	echo "Build complete!"
 
-run_dev: build_all
+run_dev: build_frontend
 	cd backend && cargo run
 
 check:

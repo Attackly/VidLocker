@@ -35,9 +35,9 @@ use tracing::{debug, info};
 async fn main() {
     tracing_subscriber::fmt().init();
 
-    let handle_count = 4;
+    let handle_count = 6;
     debug!("handle_count = {}", handle_count);
-    let idle_time = 10;
+    let idle_time = 60;
     debug!("idle_time = {}", idle_time);
 
     create_output_dir();
@@ -59,10 +59,10 @@ async fn main() {
         let pool = queue_pool.clone();
         let handle = tokio::spawn(async move {
             info!("Started worker {i}");
-            queue_worker(i, pool).await;
+            queue_worker(i, pool, idle_time).await;
         });
         handles.push(handle);
-        sleep(Duration::from_secs((idle_time / handle_count) as u64)).await;
+        sleep(Duration::from_secs(idle_time / handle_count as u64)).await;
     }
     info!("Started all Workers");
 
