@@ -145,3 +145,47 @@ pub async fn list_files(Query(params): Query<HashMap<String, String>>) -> Respon
 
     Json(files).into_response()
 }
+
+pub async fn download_file_handler(
+    Query(params): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    // TODO need to see if its better using just the filename or if i should look for a different way of identifiying the file. Esp. with Authorization in mind. 
+    
+    let base_path = "./output";
+    let file_name = params.get("file").map(|f| f.as_str()).unwrap_or("");
+    if file_name.contains("..") || file_name.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(DefaultResponse {
+                status: StatusCode::BAD_REQUEST.as_u16(),
+                message: "Invalid file path".to_string(),
+            }),
+        )
+            .into_response();
+    }
+
+    let full_path = format!("{}/{}", base_path, file_name.trim_start_matches('/'));
+
+    if !PathBuf::from(&full_path).exists() {
+        return (
+            StatusCode::NOT_FOUND,
+            Json(DefaultResponse {
+                status: StatusCode::NOT_FOUND.as_u16(),
+                message: "File not found".to_string(),
+            }),
+        )
+            .into_response();
+    }
+
+    match fs::read(full_path) {
+        Ok(contents) => (StatusCode::OK, contents).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(DefaultResponse {
+                status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                message: "Error reading file".to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}

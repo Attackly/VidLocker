@@ -15,6 +15,7 @@ use crate::{
 };
 use axum_server::tls_rustls::RustlsConfig;
 use axum::response::Response;
+use routes::files::download_file_handler;
 use std::{convert::Infallible, net::SocketAddr};
 use tokio::fs;
 use tower::service_fn;
@@ -85,6 +86,7 @@ async fn main() {
         .route("/api/files/size", post(get_single_dir_size_handler))
         .route("/api/files/dir_delete", delete(dir_delete_handler))
         .route("/api/files", get(list_files))
+        .route("/api/files/download", get(download_file_handler))
         .route("/api/yt/mode", get(mode_handler))
         .layer(cors.clone())
         .route("/api/yt/getTitle", post(title_handler))
