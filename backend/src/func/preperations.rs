@@ -3,7 +3,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::{fs, io};
 
 pub fn create_output_dir() -> () {
-    match fs::create_dir("output") {
+    match fs::create_dir_all("output/shared") {
         Ok(_) => (),
         Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
             ();

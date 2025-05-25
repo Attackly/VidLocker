@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n            queue.id AS queue_id,\n            queue.video_id,\n            queue.priority,\n            videos.url,\n            videos.viewkey\n        FROM\n            queue\n        JOIN\n            videos\n        ON\n            queue.video_id = videos.id\n           WHERE queue.task_status = 'pending'\n           ORDER BY priority DESC\n           FOR UPDATE SKIP LOCKED\n           LIMIT 1",
+  "query": "SELECT\n            queue.id AS queue_id,\n            queue.video_id,\n            queue.priority,\n            videos.url,\n            videos.viewkey,\n            videos.path\n        FROM\n            queue\n        JOIN\n            videos\n        ON\n            queue.video_id = videos.id\n           WHERE queue.task_status = 'pending'\n           ORDER BY priority DESC\n           FOR UPDATE SKIP LOCKED\n           LIMIT 1",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,11 @@
         "ordinal": 4,
         "name": "viewkey",
         "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "path",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -37,8 +42,9 @@
       false,
       true,
       false,
-      true
+      true,
+      false
     ]
   },
-  "hash": "50b3c94817375359555eabcb43738b96285e8137519f8ee3b199a18895fa3ffa"
+  "hash": "5759e15836278c7dc6bd071249b38f5f9120a8c7b90a3c1c12b2b61a05f81d8c"
 }

@@ -6,13 +6,11 @@ use youtube_dl::YoutubeDl;
 
 use crate::structs::video::Video;
 
-pub async fn download_video_simple_ydl(link: String) {
-    let folder_path = "./output";
-
-    // Download the video in a separate threadis_ok
+pub async fn download_video_simple_ydl(link: String, path: String) {
+    // Download the video in a separate thread
     thread::spawn(
-        move || match YoutubeDl::new(link).download_to(PathBuf::from(folder_path)) {
-            Ok(_) => println!("Video downloaded successfully to '{}'", folder_path),
+        move || match YoutubeDl::new(link).download_to(PathBuf::from(&path)) {
+            Ok(_) => println!("Video downloaded successfully to '{}'", path),
             Err(e) => eprintln!("Failed to download video: {}", e),
         },
     );

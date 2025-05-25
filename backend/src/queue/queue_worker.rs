@@ -11,12 +11,12 @@ pub async fn queue_worker(id: u32, pool: PgPool, interval: u64 ) {
         poll.tick().await;
 
         match get_task(&pool).await {
-            Some((0, s)) if s == "0" => {
+            Some((0, s, _x)) if s == "0" => {
                 tokio::time::sleep(std::time::Duration::from_secs(10)).await;
             }
-            Some((task_id, url)) => {
+            Some((task_id, url, path)) => {
                 info!("Worker {id} Found a Task. Will download. task with id: {task_id}");
-                download_video_simple_ydl(url).await;
+                download_video_simple_ydl(url,path).await;
 
                 mark_task_completed(&pool, task_id)
                     .await
@@ -29,7 +29,7 @@ pub async fn queue_worker(id: u32, pool: PgPool, interval: u64 ) {
     }
 }
 
-async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
+async fn get_task(pool: &PgPool) -> Option<(i32, String, String)> {
     let mut tx: Transaction<'_, Postgres> =
         pool.begin().await.expect("Failed to begin transaction");
 
@@ -42,7 +42,8 @@ async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
             queue.video_id,
             queue.priority,
             videos.url,
-            videos.viewkey
+            videos.viewkey,
+            videos.path
         FROM
             queue
         JOIN
@@ -74,11 +75,12 @@ async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
 
         // Handle if it has been downloaded already
         //
-        return Some((0, "0".to_string()));
+        return Some((0, "0".to_string(), "".to_string()));
     }
 
     let task_id: i32 = row.queue_id;
     let url: String = row.url;
+    let path: String = row.path;
 
     sqlx::query!(
         "UPDATE queue SET task_status = 'in_progress' WHERE id = $1",
@@ -90,7 +92,7 @@ async fn get_task(pool: &PgPool) -> Option<(i32, String)> {
 
     tx.commit().await.expect("Failed to commit transaction");
 
-    Some((task_id, url))
+    Some((task_id, url, path))
 }
 
 async fn mark_task_completed(pool: &PgPool, task_id: i32) -> Result<(), sqlx::Error> {

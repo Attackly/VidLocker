@@ -8,6 +8,7 @@ use url::Url;
 #[derive(Deserialize)]
 pub struct VideoRequest {
     url: String,
+    path: Option<String>
 }
 
 #[debug_handler]
@@ -25,10 +26,17 @@ pub async fn simple_download_handler(Json(payload): Json<VideoRequest>) -> Json<
     }
 
     tokio::spawn(async move {
+        let path = match payload.path {
+            Some(p) => p,
+            None => {
+                let default_path = "shared".to_string();
+                default_path
+            }
+        };
         if std::env::var("MODE").unwrap_or("direct".to_string()) == "queue" {
             write_db_entry(&payload.url).await;
         } else {
-            download_video_simple_ydl(payload.url).await;
+            download_video_simple_ydl(payload.url, path).await;
         }
     });
 

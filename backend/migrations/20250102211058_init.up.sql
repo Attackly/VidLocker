@@ -38,7 +38,7 @@ CREATE TABLE videos (
     url VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     downloaded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    path VARCHAR(255) NOT NULL,
+    path VARCHAR(255) NOT NULL DEFAULT 'shared',
     duration INT,
     viewcount BIGINT,
     tags INT,
