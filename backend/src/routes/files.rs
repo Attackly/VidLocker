@@ -7,9 +7,12 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use serde::Deserialize;
+use tracing::info;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use urlencoding::decode;
+
 #[derive(Deserialize)]
 pub struct PathRequest {
     path: String,
@@ -120,7 +123,6 @@ pub async fn list_files(Query(params): Query<HashMap<String, String>>) -> Respon
         )
             .into_response();
     }
-
     // Get the requested directory from query params
     let dir = params.get("dir").map(|d| d.as_str()).unwrap_or("/");
     let full_path = format!("{}/{}", base_path, dir.trim_start_matches('/'));
@@ -152,8 +154,10 @@ pub async fn download_file_handler(
     // TODO need to see if its better using just the filename or if i should look for a different way of identifiying the file. Esp. with Authorization in mind. 
     
     let base_path = "./output";
-    let file_name = params.get("file").map(|f| f.as_str()).unwrap_or("");
-    if file_name.contains("..") || file_name.is_empty() {
+    let file_name = params.get("filename").map(|f|  decode(f.as_str()).unwrap()).unwrap();
+    info!("Requested file: {}", file_name);
+   
+    if file_name.contains("../") || file_name.is_empty() {
         return (
             StatusCode::BAD_REQUEST,
             Json(DefaultResponse {
@@ -163,7 +167,6 @@ pub async fn download_file_handler(
         )
             .into_response();
     }
-
     let full_path = format!("{}/{}", base_path, file_name.trim_start_matches('/'));
 
     if !PathBuf::from(&full_path).exists() {

@@ -16,6 +16,7 @@
             <a href="/Download" class="hover:text-gray-400">Download</a>
             <a href="/upload" class="hover:text-gray-400">Upload</a>
             <a href="/settings" class="hover:text-gray-400">Settings</a>
+            <a href="/Shelf" class="hover:text-gray-400">Shelf</a>
         </div>
 
         <!-- Theme Toggle & Mobile Menu -->
@@ -39,5 +40,6 @@
 		<a href="/Download" class="block hover:text-gray-400">Download</a>
 		<a href="/upload" class="block hover:text-gray-400">Upload</a>
 		<a href="/settings" class="block hover:text-gray-400">Settings</a>
+        <a href="/Shelf" class="block hover:text-gray-400">Shelf</a>
 	</div>
 {/if}
