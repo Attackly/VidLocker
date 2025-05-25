@@ -4,5 +4,7 @@
 </script>
 
 <div class="p-6 flex items-center justify-center" data-theme={theme}>
-    <Mainmenucard />
+    <div class="w-full max-w-xl">
+        <Mainmenucard />
+    </div>
 </div>

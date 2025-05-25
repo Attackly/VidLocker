@@ -32,3 +32,12 @@
         </div>
     </div>
 </nav>
+
+{#if isOpen}
+	<div class="md:hidden bg-gray-800 text-white px-6 py-4 space-y-2">
+		<a href="/" class="block hover:text-gray-400">Home</a>
+		<a href="/Download" class="block hover:text-gray-400">Download</a>
+		<a href="/upload" class="block hover:text-gray-400">Upload</a>
+		<a href="/settings" class="block hover:text-gray-400">Settings</a>
+	</div>
+{/if}
