@@ -19,7 +19,7 @@ build_all: build_frontend build_rust
 	echo "Build complete!"
 
 run_dev: build_frontend
-	cd backend && cargo run
+	cd backend && cargo sqlx prepare && cargo run
 
 check:
 	cd backend && cargo check

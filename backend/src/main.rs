@@ -13,9 +13,9 @@ use crate::{
         yt::{mode_handler, title_handler},
     },
 };
-
+use axum_server::tls_rustls::RustlsConfig;
 use axum::response::Response;
-use std::convert::Infallible;
+use std::{convert::Infallible, net::SocketAddr};
 use tokio::fs;
 use tower::service_fn;
 
@@ -29,7 +29,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 use tokio::time::sleep;
 use tower_http::cors::{Any, CorsLayer};
-use tracing::{debug, info};
+use tracing::{debug, error, info};
 
 #[tokio::main]
 async fn main() {
@@ -54,7 +54,8 @@ async fn main() {
 
     info!("Created and connected to queue pool");
 
-    let mut handles = Vec::new();
+    tokio::spawn(async move {
+        let mut handles = Vec::new();
     for i in 0..handle_count {
         let pool = queue_pool.clone();
         let handle = tokio::spawn(async move {
@@ -66,6 +67,8 @@ async fn main() {
     }
     info!("Started all Workers");
 
+    });
+    
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_origin(Any)
@@ -88,10 +91,26 @@ async fn main() {
         .layer(cors.clone())
         .route("/api/files/dir_create", put(create_dir_handler))
         .layer(cors);
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
-
+    
+    let sslconfig = RustlsConfig::from_pem_file(
+        "certs/cert.crt",
+        "certs/cert.key",
+    ).await;
+    
+    if sslconfig.is_err() {
+        let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
+        error!("Failed to load SSL configuration: {:?} Falling back to HTTP", sslconfig.err());
+        axum::serve(listener, app).await.unwrap()
+    }
+    else {
+        let socket_addr = SocketAddr::from(([0, 0, 0, 0], 3001));
+        axum_server::bind_rustls(socket_addr, sslconfig.unwrap()).serve(app.into_make_service()).await.unwrap();
+    }
+    
+    
+    
+    
     info!("Serving app now");
-    axum::serve(listener, app).await.unwrap()
 }
 
 async fn fallback_handler(_req: Request<Body>) -> Result<Response, Infallible> {

@@ -6,8 +6,8 @@ backend/.env
 backend/example.json
 backend/dist
 docker-compose.yaml
-
-frontend/node_modules
+backend/certs
+frontend/Snode_modules
 frontend/bak
 # Output
 frontend/.output

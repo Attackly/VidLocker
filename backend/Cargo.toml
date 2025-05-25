@@ -1,3 +1,9 @@
+[profile.dev]
+incremental = true
+
+[profile.release]
+incremental = true
+
 [package]
 name = "VidLocker"
 version = "0.1.0"
@@ -26,6 +32,7 @@ chrono = { version = "0.4.39", features = ["serde"] }
 serde_with = "3.12.0"
 tower = "0.5.2"
 url = "2.5.4"
+axum-server = {version = "0.7.2", features=["tls-rustls"]}
 
 
 [dev-dependencies]
