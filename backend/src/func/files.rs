@@ -1,6 +1,5 @@
+use std::fs;
 use std::path::PathBuf;
-use tokio::fs;
-
 // TODO I dont like this error handling. Find a way to fix this
 pub async fn dir_create<'a>(path: String) -> Result<&'a str, u8> {
     // Prevent someone from creating a Dir using ./../../../../Somewhere
@@ -9,7 +8,7 @@ pub async fn dir_create<'a>(path: String) -> Result<&'a str, u8> {
     }
     let path = PathBuf::from("output/".to_owned() + &*path);
 
-    match fs::create_dir_all(path).await {
+    match fs::create_dir_all(path) {
         Ok(_) => Ok("Dir Created"),
         Err(_) => Err(2),
     }
@@ -23,7 +22,7 @@ pub async fn dir_delete<'a>(path: String) -> Result<&'a str, u8> {
 
     let path = PathBuf::from("output/".to_owned() + &*path);
 
-    match fs::remove_dir_all(path).await {
+    match fs::remove_dir_all(path) {
         Ok(_) => Ok("Dir deleted"),
         Err(_) => Err(2),
     }
@@ -42,6 +41,12 @@ pub async fn get_dir_size(path: String) -> Option<u64> {
     }
 }
 
+//noinspection GrazieInspection
+/// List files in a directory
+/// Arg: path - PathBuf
+/// Return: Result<Vec<FileEntry>, u8>
+/// 1: Contains a ..
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -50,7 +55,7 @@ mod tests {
     #[tokio::test]
     async fn test_dir_creation() {
         if PathBuf::from("TESTS/RUST").exists() {
-            fs::remove_dir_all("TESTS/RUST".to_string()).await.unwrap();
+            fs::remove_dir_all("TESTS/RUST".to_string()).unwrap();
         }
         assert!(dir_create("TESTS/RUST".to_string()).await.is_ok());
     }
@@ -82,9 +87,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_dir_size_failing_non_existant() {
-        assert!(get_dir_size("../../should_fail".to_string())
-            .await
-            .is_none());
+        assert!(
+            get_dir_size("../../should_fail".to_string())
+                .await
+                .is_none()
+        );
     }
 
     #[tokio::test]

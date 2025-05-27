@@ -1,4 +1,10 @@
-<!-- YOU CAN DELETE EVERYTHING IN THIS PAGE -->
-<div class="container h-full mx-auto flex justify-center items-center">
-	<a href="Download" class="btn variant-filled">Donwload Something</a>
+<script>
+    import { theme } from "$lib/stores/theme";
+    import Mainmenucard from "$lib/mainmenucard.svelte";
+</script>
+
+<div class="p-6 flex items-center justify-center" data-theme={theme}>
+    <div class="w-full max-w-xl">
+        <Mainmenucard />
+    </div>
 </div>

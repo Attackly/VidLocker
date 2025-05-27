@@ -2,13 +2,14 @@ use serde::Serialize;
 use serde::Serializer;
 use serde_json::Value;
 use serde_with::serde_as;
+use sqlx::PgPool;
 use sqlx::types::chrono::{DateTime, Utc};
 use sqlx::types::time::OffsetDateTime;
-use sqlx::PgPool;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
 use tracing::info;
+use tracing::warn;
 use url::Url;
 
 #[serde_as]
@@ -59,12 +60,16 @@ impl Video {
         )
         .unwrap();
 
-        let timestamp = json
-            .get("timestamp")
-            .and_then(|f| f.as_i64())
-            .expect("Error getting and parsing timestamp");
-
-        let published_at = Some(DateTime::from_timestamp(timestamp, 0).expect("Invalid timestamp"));
+        let timestamp;
+        let published_at;
+        if json.get("timestamp").is_none() {
+            warn!("Timestamp contains None");
+            published_at = None;
+        } else {
+            timestamp = json.get("timestamp").and_then(|f| f.as_i64());
+            published_at =
+                Some(DateTime::from_timestamp(timestamp.unwrap(), 0).expect("Invalid timestamp"));
+        }
 
         let channel_id = match json
             .get("channel_id")
@@ -224,9 +229,9 @@ impl Video {
           self.downloaded_at.map(|dt| OffsetDateTime::from_unix_timestamp(dt.timestamp()).unwrap().replace_nanosecond(dt.timestamp_subsec_nanos()).unwrap())
             , self.duration.map(|duration| duration as i32), self.viewcount.map(|vc| vc as i64), self.ext, self.lang, self.height.map(|height| height as i32), self.width.map(|width| width as i32), self.dynamic_range, self.availability, self.fps.map(|fps| fps as i32), self.average_rating.map(|ar| ar as i16), self.age_limit.map(|al| al as i16), self.likes.map(|likes| likes as i32), self.status, self.comments.map(|comments| comments as i32), self.chapters)
             .fetch_one(pool).await {
-            Ok(id) => return Ok(id.id),
-            Err(e) => {println!("{:?}", e); return Err(e)}
-        };
+            Ok(id) => Ok(id.id),
+            Err(e) => {println!("{:?}", e); Err(e)}
+        }
     }
 }
 

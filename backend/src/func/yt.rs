@@ -4,6 +4,8 @@ use serde::Serialize;
 use serde_json::Value;
 use std::env;
 
+use crate::structs::video::Video;
+
 pub fn get_mode() -> String {
     if env::var("YT_API_KEY").is_err() {
         "fallback".to_owned()
@@ -15,8 +17,19 @@ pub fn get_mode() -> String {
 pub async fn get_title(viewkey: &str) -> Option<VideoResp> {
     match env::var("YT_API_KEY") {
         Ok(key) => return get_title_api(viewkey, key).await,
-        Err(_) => return None,
+        Err(_) => (),
     };
+
+    let vid = Video::from_yt_viewkey(viewkey.to_string());
+    Some(VideoResp {
+        viewkey: vid.viewkey,
+        title: vid.title,
+        channel_id: vid.channel_id,
+        description: vid.description,
+        channel_name: vid.channel_name,
+        published_at: vid.published_at,
+        tags: vid.tags,
+    })
 }
 
 async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {

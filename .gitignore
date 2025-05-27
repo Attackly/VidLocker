@@ -4,9 +4,10 @@ backend/target
 backend/output/
 backend/.env
 backend/example.json
+backend/dist
 docker-compose.yaml
-
-frontend/node_modules
+backend/certs
+frontend/Snode_modules
 frontend/bak
 # Output
 frontend/.output
@@ -17,7 +18,7 @@ frontend/build
 # OS
 .DS_Store
 Thumbs.db
-
+/.idea
 # Env
 .env
 .env.*
@@ -30,3 +31,4 @@ Thumbs.db
 /output
 backend/example for db.json
 o.json
+git-filter-repo
