@@ -7,7 +7,7 @@ use crate::{
     func::preperations::{create_output_dir, prepare_database},
     queue::queue_worker::queue_worker,
     routes::{
-        files::{create_dir_handler, dir_delete_handler, get_single_dir_size_handler, list_files},
+        files::{create_dir_handler, dir_delete_handler, get_single_dir_size_handler, list_files, delete_file},
         misc::check_system_handler,
         video::simple_download_handler,
         yt::{mode_handler, title_handler},
@@ -84,13 +84,12 @@ async fn main() {
         .route("/test", get(check_system_handler))
         .route("/api/downloadVideo", post(simple_download_handler))
         .route("/api/files/size", post(get_single_dir_size_handler))
-        .route("/api/files/dir_delete", delete(dir_delete_handler))
+        .route("/api/files/directroy", delete(dir_delete_handler))
         .route("/api/files", get(list_files))
+        .route("/api/file/{*filename}", delete(delete_file))
         .route("/api/files/download", get(download_file_handler))
         .route("/api/yt/mode", get(mode_handler))
-        .layer(cors.clone())
         .route("/api/yt/getTitle", post(title_handler))
-        .layer(cors.clone())
         .route("/api/files/dir_create", put(create_dir_handler))
         .layer(cors);
     
@@ -102,19 +101,17 @@ async fn main() {
     if sslconfig.is_err() {
         let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
         error!("Failed to load SSL configuration: {:?} Falling back to HTTP", sslconfig.err());
+        info!("Serving app on port 3001: http://localhost:3001");
         axum::serve(listener, app).await.unwrap()
     }
     else {
         let socket_addr = SocketAddr::from(([0, 0, 0, 0], 3001));
+        info!("Serving app with SSL on port 3001: https://localhost:3001");
         axum_server::bind_rustls(socket_addr, sslconfig.unwrap()).serve(app.into_make_service()).await.unwrap();
     }
-    
-    
-    
-    
-    info!("Serving app now");
 }
 
+//noinspection ALL
 async fn fallback_handler(_req: Request<Body>) -> Result<Response, Infallible> {
     let html = fs::read_to_string("dist/index.html")
         .await
@@ -122,5 +119,6 @@ async fn fallback_handler(_req: Request<Body>) -> Result<Response, Infallible> {
 
     Ok(Response::builder()
         .header("Content-Type", "text/html")
-        .body(Body::from(html)).unwrap())
+        .body(Body::from(html))
+        .unwrap())
 }

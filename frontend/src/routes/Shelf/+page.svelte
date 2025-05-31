@@ -1,27 +1,21 @@
 <script lang="ts">
-    import "../../app.css";
-
+    // TODO Refactor this shit. It looks ugly and shitty.
     const illegalChars = "\0";
+    const units = ["Bytes", "KB", "MB", "GB"];
 
-    let data_test: any[] = [
-        {
-            name: "Vid...",
-            file_size: 1000,
-            is_directory: false,
-        },
-        {
-            name: "Vid2...",
-            file_size: 109939990,
-            is_directory: true,
-        },
-    ];
+    import "../../app.css";
+    import Modal from "$lib/modal.svelte"
+
+    let showModal = false;
+    let FileName = "";
     let data: any[] = []
     let currentDir = "/";
     let currentDirArray = ["/"];
     let newFolderName = "";
+    let filePromise = get_Files(currentDir);
+    $: filePromise = get_Files(currentDir);
 
     function formatBytes(bytes: number) {
-        const units = ["Bytes", "KB", "MB", "GB"];
         if (bytes === 0) return "0 Bytes";
 
         const i = Math.floor(Math.log(bytes) / Math.log(1000));
@@ -41,15 +35,17 @@
             currentDirArray = currentDir.split("/").filter(Boolean);
         }
     }
-    async function deleteFile(id: string) {
-        const res = await fetch(`/api/files/${id}`, {
+    async function deleteFile(path: string) {
+        const res = await fetch(`/api/file${path.substring(1)}`, {
             method: "DELETE",
         });
         if (!res.ok) {
-            console.error(`Failed to delete file with id: ${id}`);
+            console.error(`Failed to delete file with id: ${path}`);
             return null;
         }
-        return id;
+
+        filePromise = get_Files(currentDir);
+        return path;
     }
 
     async function get_Files(dir: string) {
@@ -108,6 +104,22 @@
 
         return 0;
     }
+    const handleDeleteClick = (filename: string) => {
+        FileName = filename;
+        showModal = true;
+    };
+
+    const confirmDelete = () => {
+        deleteFile(FileName);
+        showModal = false;
+        FileName = "";
+    };
+
+    const cancelDelete = () => {
+        showModal = false;
+        FileName = "";
+    };
+
 </script>
 
 <div
@@ -139,7 +151,7 @@
         </ol>
 
         <div class="pb-10"></div>
-        {#await get_Files(currentDir) then data}
+        {#await filePromise then data}
         <table class="max-width table-fixed w-full">
             <thead class="border-b">
             <tr>
@@ -203,8 +215,8 @@
                             <button
                                     class="bg-red-700 p-1 rounded cursor-pointer items-center"
                                     id="delete"
-                                    data-id={row.name}
-                                    on:click={() => deleteFile(row.name)}
+                                    data-id={row.path}
+                                    on:click={() => handleDeleteClick(row.path)}
                             >
                                 <svg
                                         class="w-5 h-5"
@@ -258,3 +270,9 @@
         </div>
     </div>
 </div>
+
+<Modal
+        open={showModal}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+/>

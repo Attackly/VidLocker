@@ -35,20 +35,19 @@ pub async fn mode_handler() -> Json<ModeResponse> {
 
 #[axum_macros::debug_handler]
 pub async fn title_handler(Json(payload): Json<VideoRequest>) -> Json<VideoResponse> {
-    match get_title(&payload.url).await {
-        Some(video) => {
-            return Json(VideoResponse {
-                status: StatusCode::OK.as_u16(),
-                video: Some(video),
-            });
-        }
-        None => {
-            return Json(VideoResponse {
-                status: StatusCode::NOT_FOUND.as_u16(),
-                video: None,
-            });
-        }
-    };
+    if let Some(video) = get_title(&payload.url).await {
+        Json(VideoResponse {
+            status: StatusCode::OK.as_u16(),
+            video: Some(video),
+        })
+    } else if let None = get_title(&payload.url).await {
+        Json(VideoResponse {
+            status: StatusCode::NOT_FOUND.as_u16(),
+            video: None,
+        })
+    } else {
+        unreachable!()
+    }
 }
 
 #[cfg(test)]

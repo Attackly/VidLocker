@@ -2,7 +2,7 @@ use crate::func::files::{dir_create, dir_delete, get_dir_size};
 use crate::routes::responses::{DefaultResponse, DirSizeResponse};
 use crate::structs::file::FileEntry;
 use axum::Json;
-use axum::extract::Query;
+use axum::extract::{Path, Query};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
@@ -191,4 +191,10 @@ pub async fn download_file_handler(
         )
             .into_response(),
     }
+}
+
+pub async fn delete_file(Path(filename): Path<String>) -> impl IntoResponse {
+    fs::remove_file(PathBuf::from(format!("output/{}", filename))).unwrap();
+    info!("Deleted file: {}", filename);
+    StatusCode::OK.into_response()
 }
