@@ -23,6 +23,7 @@ WORKDIR /app
 
 # Copy the source code
 COPY ./backend .
+
 ENV SQLX_OFFLINE=true
 # Build the application in release mode
 RUN cargo build --release
@@ -36,6 +37,7 @@ RUN apk add yt-dlp
 WORKDIR /app
 # Copy the compiled binary from the builder stage
 COPY --from=builder /app/target/release/VidLocker /app/vidlocker
+COPY ./frontend/build ./dist
 
 # Expose necessary ports
 EXPOSE 3001
