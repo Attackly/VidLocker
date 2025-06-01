@@ -7,7 +7,7 @@ use crate::{
     func::preperations::{create_output_dir, prepare_database},
     queue::queue_worker::queue_worker,
     routes::{
-        files::{create_dir_handler, dir_delete_handler, get_single_dir_size_handler, list_files, delete_file},
+        files::{create_dir_handler, dir_delete_handler, get_single_dir_size_handler, list_files, delete_file, dir_post_handler},
         misc::check_system_handler,
         video::simple_download_handler,
         yt::{mode_handler, title_handler},
@@ -84,7 +84,7 @@ async fn main() {
         .route("/test", get(check_system_handler))
         .route("/api/downloadVideo", post(simple_download_handler))
         .route("/api/files/size", post(get_single_dir_size_handler))
-        .route("/api/files/directroy", delete(dir_delete_handler))
+        .route("/api/files/directroy", delete(dir_delete_handler).post(dir_post_handler))
         .route("/api/files", get(list_files))
         .route("/api/file/{*filename}", delete(delete_file))
         .route("/api/files/download", get(download_file_handler))
@@ -115,7 +115,7 @@ async fn main() {
 async fn fallback_handler(_req: Request<Body>) -> Result<Response, Infallible> {
     let html = fs::read_to_string("dist/index.html")
         .await
-        .unwrap_or_else(|_| "<h1>500 - Internal Server Error</h1>".to_string());
+        .unwrap_or_else(|e| format!("<h1>500 - Internal Server Error: {:?}</h1>", e));
 
     Ok(Response::builder()
         .header("Content-Type", "text/html")

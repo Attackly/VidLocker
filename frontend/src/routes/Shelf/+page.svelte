@@ -96,14 +96,21 @@
     }
 
     async function create_new_dir(newDirName : string) {
-        // TODO
         if(newDirName.includes(illegalChars)) {
             newFolderName = "";
             return 1;
         }
-
+        const res = await fetch("/api/files/directroy",{method: "POST", body: JSON.stringify({path: newDirName}), headers: {
+                "Content-Type": "application/json",
+            }});
+        if (!res.ok) {
+            // TODO make a notification if it fails
+            return 1;
+        }
+        filePromise = get_Files(currentDir);
         return 0;
     }
+
     const handleDeleteClick = (filename: string) => {
         FileName = filename;
         showModal = true;
@@ -123,7 +130,7 @@
 </script>
 
 <div
-        class="sm:w-3/4 lg:w-1/2 mt-5 p-3 mb-5 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative justify-center flex mx-auto"
+        class="sm:w-3/4 lg:w-1/2 mt-5 p-3 mb-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative justify-center flex mx-auto"
 >
     <div class="flex flex-col max-width">
         <ol
@@ -132,6 +139,9 @@
             <li
                     class="flex cursor-pointer items-center transition-colors duration-300 hover:text-slate-800 text-primary text-lg"
             >
+                <div class="mr-2">
+                    Current Directory:
+                </div>
                 <button type="button" on:click={() => cd("/")}> /</button>
             </li>
             {#each currentDirArray as dir}
@@ -139,7 +149,7 @@
                     <li
                             class="flex cursor-pointer items-center transition-colors duration-300 hover:text-slate-800 text-primary text-lg"
                     >
-            <span class="pointer-events-none mx-2 text-primary text-lg">
+            <span class="pointer-events-noreturn StatusCode::FORBIDDEN.into_response()ne mx-2 text-primary text-lg">
               >
             </span>
                         <button type="button" on:click={() => cd(dir)}>
@@ -150,7 +160,7 @@
             {/each}
         </ol>
 
-        <div class="pb-10"></div>
+        <div class="pb-4"></div>
         {#await filePromise then data}
         <table class="max-width table-fixed w-full">
             <thead class="border-b">
