@@ -48,7 +48,7 @@ RUN apk add yt-dlp
 WORKDIR /app
 # Copy the compiled binary from the builder stage
 COPY --from=builder /app/target/release/VidLocker /app/vidlocker
-COPY --from=frontend-builder /frontend/dist /app/dist
+COPY --from=frontend-builder /frontend/build /app/dist
 
 # Expose necessary ports
 EXPOSE 3001
