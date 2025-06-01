@@ -28,7 +28,18 @@ ENV SQLX_OFFLINE=true
 # Build the application in release mode
 RUN cargo build --release
 
-# Stage 2: Create a minimal runtime image
+# Stage 2: build the frontend
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+# Install dependencies and build
+COPY ./frontend/package*.json ./
+RUN npm install
+COPY ./frontend .
+RUN npm run build
+
+# Stage 3: Create a minimal runtime image
 FROM alpine:latest
 
 RUN apk add yt-dlp
@@ -37,7 +48,7 @@ RUN apk add yt-dlp
 WORKDIR /app
 # Copy the compiled binary from the builder stage
 COPY --from=builder /app/target/release/VidLocker /app/vidlocker
-COPY ./frontend/build ./dist
+COPY --from=frontend-builder /frontend/dist /app/dist
 
 # Expose necessary ports
 EXPOSE 3001
