@@ -7,10 +7,10 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use serde::Deserialize;
-use tracing::info;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use tracing::info;
 use urlencoding::decode;
 
 #[derive(Deserialize)]
@@ -151,12 +151,15 @@ pub async fn list_files(Query(params): Query<HashMap<String, String>>) -> Respon
 pub async fn download_file_handler(
     Query(params): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    // TODO need to see if its better using just the filename or if i should look for a different way of identifiying the file. Esp. with Authorization in mind. 
-    
+    // TODO need to see if its better using just the filename or if i should look for a different way of identifiying the file. Esp. with Authorization in mind.
+
     let base_path = "./output";
-    let file_name = params.get("filename").map(|f|  decode(f.as_str()).unwrap()).unwrap();
+    let file_name = params
+        .get("filename")
+        .map(|f| decode(f.as_str()).unwrap())
+        .unwrap();
     info!("Requested file: {}", file_name);
-   
+
     if file_name.contains("../") || file_name.is_empty() {
         return (
             StatusCode::BAD_REQUEST,
@@ -194,7 +197,29 @@ pub async fn download_file_handler(
 }
 
 pub async fn delete_file(Path(filename): Path<String>) -> impl IntoResponse {
-    fs::remove_file(PathBuf::from(format!("output/{}", filename))).unwrap();
+    match fs::remove_file(PathBuf::from(format!("output/{}", filename))) {
+        Ok(_) => (),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            return StatusCode::NOT_FOUND.into_response()
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => {
+            return StatusCode::FORBIDDEN.into_response()
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::IsADirectory => {
+            return match fs::remove_dir_all(format!("output/{}", filename)) {
+                Ok(_) => StatusCode::OK.into_response(),
+                Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            }
+        }
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
     info!("Deleted file: {}", filename);
     StatusCode::OK.into_response()
+}
+
+pub async fn dir_post_handler(Json(payload): Json<PathRequest>) -> impl IntoResponse {
+    return match fs::create_dir_all(format!("output/{}", payload.path)) {
+        Ok(_) => StatusCode::CREATED.into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
 }
