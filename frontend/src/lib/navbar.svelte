@@ -1,6 +1,10 @@
 <script>
-    import { theme } from "$lib/stores/theme";
-    let isOpen = false;
+     import { theme } from "$lib/stores/theme";
+    import { $state } from "svelte/rules";
+
+    // ✅ Use $state for reactive component-level variables
+    let isOpen = $state(false);
+
     function toggleTheme() {
         theme.update((t) => (t === "bird" ? "death-dark" : "bird"));
     }

@@ -10,6 +10,9 @@ use reqwest;
 use serde::Serialize;
 use serde_json::Value;
 use std::env;
+use rustypipe::client::RustyPipe;
+use rustypipe::model::richtext::ToPlaintext;
+use rustypipe::model::traits::YtEntity;
 
 pub fn get_mode() -> String {
     if env::var("YT_API_KEY").is_err() {
@@ -25,11 +28,17 @@ pub async fn get_title(viewkey: &str) -> Option<VideoResp> {
         Err(_) => (),
     };
 
-    if viewkey.len() == 11 {
-        return Some(get_youtube_details_embedded_json(&*("https://youtube.com/watch?v=".to_owned() + viewkey)).await.unwrap());
-    }
+    let rp = RustyPipe::new().query().video_details(viewkey).await.unwrap();
 
-    return Some(get_youtube_details_embedded_json(viewkey).await.unwrap());
+    Some(VideoResp {
+        viewkey: viewkey.to_string(),
+        published_at: None,
+        channel_id: None,
+        title: Some(rp.name),
+        description: Some(rp.description.to_plaintext()),
+        channel_name: Some(rp.channel.channel_name()?.to_string()),
+        tags: None,
+    })
 }
 
 async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {
@@ -90,7 +99,7 @@ async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {
     })
 }
 
-// TODO FIX THIS. THATS A STUPID AND BAD SOLUTION TO THE PROBLEM
+
 #[derive(Serialize)]
 pub struct VideoResp {
     viewkey: String,
@@ -100,103 +109,4 @@ pub struct VideoResp {
     pub description: Option<String>,
     pub channel_name: Option<String>,
     pub tags: Option<Vec<String>>,
-}
-
-
-#[derive(Deserialize, Debug)]
-struct PlayerMicroformatRenderer {
-    #[serde(rename = "title")]
-    title_object: Option<TitleObject>,
-    #[serde(rename = "ownerChannelName")]
-    owner_channel_name: Option<String>,
-    #[serde(rename = "uploadDate")]
-    upload_date: Option<String>, // Typically YYYY-MM-DD
-    #[serde(rename = "publishDate")]
-    publish_date: Option<String>, // Also YYYY-MM-DD, fallback
-}
-
-#[derive(Deserialize, Debug)]
-struct TitleObject {
-    #[serde(rename = "simpleText")]
-    simple_text: Option<String>,
-}
-
-#[derive(Deserialize, Debug)]
-struct Microformat {
-    #[serde(rename = "playerMicroformatRenderer")]
-    player_microformat_renderer: Option<PlayerMicroformatRenderer>,
-}
-
-#[derive(Deserialize, Debug)]
-struct YtInitialPlayerResponse {
-    microformat: Option<Microformat>,
-}
-
-pub async fn get_youtube_details_embedded_json(
-    video_url: &str,
-) -> Result<VideoResp, Box<dyn Error>> {
-    let mut details = VideoResp {
-        viewkey: "".to_string(),
-        published_at: None,
-        channel_id: None,
-        title: None,
-        description: None,
-        channel_name: None,
-        tags: None,
-    };
-
-    let client = Client::builder().timeout(Duration::from_secs(10)).build()?;
-
-    let response = client.get(video_url)
-        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-        .header("Accept-Language", "en-US,en;q=0.9")
-        .send().await?;
-
-    if !response.status().is_success() {
-        return Err(format!("Request failed with status: {}", response.status()).into());
-    }
-
-    let html_content = response.text().await?;
-    let re = Regex::new(r"ytInitialPlayerResponse\s*=\s*(\{.+?});")?;
-
-    if let Some(caps) = re.captures(&html_content) {
-        if let Some(match_group) = caps.get(1) {
-            let json_str = match_group.as_str();
-            if let Ok(parsed_response) = serde_json::from_str::<YtInitialPlayerResponse>(json_str) {
-                if let Some(microformat) = parsed_response.microformat {
-                    if let Some(renderer) = microformat.player_microformat_renderer {
-                        if let Some(title_obj) = renderer.title_object {
-                            details.title = title_obj.simple_text;
-                        }
-                        details.channel_name = renderer.owner_channel_name;
-                        details.published_at = Some(
-                            renderer
-                                .upload_date
-                                .or(renderer.publish_date)
-                                .unwrap()
-                                .parse()
-                                .unwrap(),
-                        );
-
-                        if details.title.is_some()
-                            && details.channel_name.is_some()
-                            && details.published_at.is_some()
-                        {
-                            return Ok(details);
-                        }
-                    }
-                }
-            } else {
-                error!("error parsing yt repsonse");
-            }
-        }
-    } else {
-        error!("error parsing yt repsonse");
-    }
-
-    if details.title.is_none() && details.published_at.is_none() && details.published_at.is_none() {
-        Err("Could not extract any details from embedded JSON.".into())
-    } else {
-        Ok(details)
-    }
 }

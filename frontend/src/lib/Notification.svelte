@@ -2,8 +2,6 @@
 <script lang="ts">
     import { notifications } from "$lib/stores/notification";
     import { fly, fade } from "svelte/transition";
-
-    $: $notifications;
 </script>
 
 <div class="fixed top-4 right-4 z-50 space-y-2">

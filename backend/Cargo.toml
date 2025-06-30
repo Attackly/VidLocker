@@ -9,6 +9,10 @@ name = "VidLocker"
 version = "0.1.0"
 edition = "2024"
 
+license = "AGPL-3.0-or-later" # <--- Add this line
+authors = ["Attackly@outlook.de"] # Optional, but good practice
+description = "YT Video and Livestream archiver" # Optional
+
 [dependencies]
 axum = "0.8.3"
 tokio = { version = "1.45.1", features = ["full"] }
@@ -36,6 +40,7 @@ urlencoding = "2.1.3"
 url = "2.5.4"
 scraper = "0.23.1"
 regex = "1.11.1"
+rustypipe = "0.11.4"
 
 
 [dev-dependencies]

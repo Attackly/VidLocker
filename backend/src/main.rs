@@ -70,11 +70,11 @@ async fn main() {
 
     });
     
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_origin(Any)
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers([axum::http::header::CONTENT_TYPE]);
+   // let cors = CorsLayer::new()
+   //     .allow_origin(Any)
+   //     .allow_origin(Any)
+   //     .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+   //     .allow_headers([axum::http::header::CONTENT_TYPE]);
 
     let static_files =
         tower_http::services::ServeDir::new("dist").not_found_service(service_fn(fallback_handler));
@@ -90,8 +90,8 @@ async fn main() {
         .route("/api/files/download", get(download_file_handler))
         .route("/api/yt/mode", get(mode_handler))
         .route("/api/yt/getTitle", post(title_handler))
-        .route("/api/files/dir_create", put(create_dir_handler))
-        .layer(cors);
+        .route("/api/files/dir_create", put(create_dir_handler));
+    // .layer(cors);
     
     let sslconfig = RustlsConfig::from_pem_file(
         "certs/cert.crt",

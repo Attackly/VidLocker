@@ -1,36 +1,26 @@
 <script lang="ts">
     import "../app.css";
     import { link } from "$lib/stores/linkstore";
-    let validation = "";
-    let url = "";
+    
+    let url = $state("");
+    const VALID_URL_LENGTHS = [11, 20, 28, 35, 43];
 
-    function url_verify() {
-        if (url.length == 11) {
-            validation = "input-success";
-            link.set(url);
-        } // full link with HTTPS or without HTTPS
-        else if (url.length == 43 || url.length == 35) {
-            validation = "input-success";
-            link.set(url);
+    let validation = $derived(() => {
+        if (url.length === 0) {
+            return "";        }
+        if (VALID_URL_LENGTHS.includes(url.length)) {
+            return "input-success";
         }
-        // Shortend Youtube link
-        else if (url.length == 28 || url.length == 20) {
-            validation = "input-success";
-            link.set(url);
-        }
-        // Between Viewkey and link
-        else if (url.length < 23 && url.length > 11) {
-            validation = "input-error";
-            return;
-        }
-        // Not even a viewkey
-        else if (url.length < 11) {
-            validation = "input-error";
-            return;
-        }
-    }
+        return "input-error";
+    });
 
-    $: console.log("Updated Viewkey:", $link);
+    $effect(() => {
+        if (validation() === "input-success") {
+            link.set(url);
+            console.log("Link store updated with:", url);
+        }
+    });
+
 </script>
 
 <div
@@ -43,7 +33,6 @@
             type="text"
             placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             bind:value={url}
-            on:input={url_verify}
         />
     </label>
 </div>

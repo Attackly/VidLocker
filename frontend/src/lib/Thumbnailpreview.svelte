@@ -1,24 +1,28 @@
 <script lang="ts">
     import { link } from "$lib/stores/linkstore"; // Adjust this import as needed
-    let viewkey: string = "";
-    // Function to run when the link store changes
 
-    function onLinkChange(newLink: string) {
-        console.log("Link has changed in the Previewe");
-        if (newLink.length != 11) {
-            viewkey = newLink.split("?v=")[1];
-        } else if (newLink.length == 11) {
-            viewkey = newLink;
+    let viewkey = $derived(() => {
+        const newLink = $link; // Auto-subscribes to the store's value
+
+        if (!newLink) {
+            return ""; // Handle initial or undefined state
         }
 
-        console.log("Viewkey in the Thumbniail:", viewkey);
-    }
+        // Check for full youtube.com URL
+        if (newLink.includes("?v=")) {
+            return newLink.split("?v=")[1];
+        }
+        // Assume it's already a viewkey if it's 11 characters
+        else if (newLink.length === 11) {
+            return newLink;
+        }
 
-    link.subscribe((value) => {
-        if (value === undefined) {
-            console.log("Link is undefined");
-        } else {
-            onLinkChange(value);
+        return ""; // Return empty if no valid format is found
+    });
+
+        $effect(() => {
+        if (viewkey) {
+            console.log("Viewkey in the Thumbnail:", viewkey);
         }
     });
 </script>

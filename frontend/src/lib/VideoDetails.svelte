@@ -1,49 +1,61 @@
 <script lang="ts">
-    let title = "";
-    let uploader = "";
-    let date: string;
     import { link } from "$lib/stores/linkstore";
 
-    async function getYouTubeTitle(viewkey: string) {
-        if (viewkey.length != 11) {
-            viewkey = viewkey.split("?v=")[1];
-        }
+    let video = $state({
+		loading: true,
+		error: null as string | null,
+		title: '',
+		uploader: '',
+		date: ''
+	});
 
-        if (viewkey === undefined) {
-            console.log("Viewkey is undefined");
-            return;
-        }
+    let viewkey = $derived(() => {
+		const newLink = $link;
+		if (!newLink) return '';
+		if (newLink.includes('?v=')) return newLink.split('?v=')[1];
+		if (newLink.length === 11) return newLink;
+		return '';
+	});
+$effect(() => {
+		async function getYouTubeTitle() {
+			if (!viewkey) {
+				// Reset to a clean initial state if there's no key
+				video.title = '';
+				video.loading = false;
+				return;
+			}
 
-        const response = await fetch("/api/yt/getTitle", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: '{"url": "' + viewkey + '"}',
-        });
-        const data = await response.json();
+			video.loading = true;
+			video.error = null;
+			try {
+				const response = await fetch('/api/yt/getTitle', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ url: viewkey })
+				});
 
-        if (data.video == null) {
-            let isError = true;
-            let disabled = true;
-        } else {
-            let isError = false;
-        }
-        let video = data.video;
-        title = data.video.title;
-        uploader = data.video.channel_name;
-        let video_published_at = new Date(data.video.published_at);
+				if (!response.ok) throw new Error('API request failed');
+				const data = await response.json();
+				if (!data.video) throw new Error('Video data not found in response.');
 
-        date = video_published_at.toLocaleString();
-    }
+				const publishedAt = new Date(data.video.published_at);
 
-    link.subscribe((value) => {
-        if (value === undefined) {
-            console.log("Link is undefined");
-        } else {
-            getYouTubeTitle(value);
-        }
-    });
+				// Update state in a single, clean assignment
+				video.title = data.video.title;
+				video.uploader = data.video.channel_name;
+				video.date = publishedAt.toLocaleString();
+			} catch (e: any) {
+				console.error('Failed to fetch video details:', e);
+				video.error = e.message;
+				video.title = 'Error loading video'; // Show error in UI
+			} finally {
+				video.loading = false;
+			}
+		}
+
+		getYouTubeTitle();
+	});
+</script>
 </script>
 
 <div
