@@ -1,26 +1,25 @@
 <script lang="ts">
-    import { link } from "$lib/stores/linkstore"; // Adjust this import as needed
+    import { link } from "$lib/stores/linkstore";
 
     let viewkey = $derived(() => {
-        const newLink = $link; // Auto-subscribes to the store's value
+        const newLink = $link
 
         if (!newLink) {
-            return ""; // Handle initial or undefined state
+            return "";
         }
 
-        // Check for full youtube.com URL
         if (newLink.includes("?v=")) {
             return newLink.split("?v=")[1];
         }
-        // Assume it's already a viewkey if it's 11 characters
+
         else if (newLink.length === 11) {
             return newLink;
         }
 
-        return ""; // Return empty if no valid format is found
+        return "";
     });
 
-        $effect(() => {
+    $effect(() => {
         if (viewkey) {
             console.log("Viewkey in the Thumbnail:", viewkey);
         }

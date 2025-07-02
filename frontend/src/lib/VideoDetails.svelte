@@ -16,10 +16,10 @@
 		if (newLink.length === 11) return newLink;
 		return '';
 	});
-$effect(() => {
+    
+    $effect(() => {
 		async function getYouTubeTitle() {
 			if (!viewkey) {
-				// Reset to a clean initial state if there's no key
 				video.title = '';
 				video.loading = false;
 				return;
@@ -47,7 +47,7 @@ $effect(() => {
 			} catch (e: any) {
 				console.error('Failed to fetch video details:', e);
 				video.error = e.message;
-				video.title = 'Error loading video'; // Show error in UI
+				video.title = 'Error loading video';
 			} finally {
 				video.loading = false;
 			}
@@ -56,20 +56,19 @@ $effect(() => {
 		getYouTubeTitle();
 	});
 </script>
-</script>
 
 <div
     class="sm:w-3/4 lg:w-1/2 mt-5 p-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
 >
-    {#if title != ""}
-        <h2 class="text-lg font-bold">{title}</h2>
+    {#if video.title != ""}
+        <h2 class="text-lg font-bold">{video.title}</h2>
     {:else}
         <div class="w-3/5 h-5 bg-gray-300 rounded animate-pulse"></div>
     {/if}
     <p class="text-md text-gray-300">
-        Uploaded by: <span class="font-semibold">{uploader}</span>
+        Uploaded by: <span class="font-semibold">{video.uploader}</span>
     </p>
     <p class="text-md text-gray-300">
-        Upload Date: <span class="font-semibold">{date}</span>
+        Upload Date: <span class="font-semibold">{video.date}</span>
     </p>
 </div>
