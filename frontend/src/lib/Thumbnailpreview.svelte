@@ -16,12 +16,11 @@
             return newLink;
         }
 
-        return "";
-    });
+        return "";});
 
     $effect(() => {
-        if (viewkey) {
-            console.log("Viewkey in the Thumbnail:", viewkey);
+        if (viewkey() != "" && viewkey() != null) {
+            console.log("Viewkey in the Thumbnail:", viewkey());
         }
     });
 </script>
@@ -30,9 +29,9 @@
     class="sm:w-3/4 lg:w-1/2 mt-5 p-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
 >
     <div class="w-full h-0 pb-[56.25%] relative">
-        {#if viewkey}
+        {#if viewkey()}
             <img
-                src={`https://img.youtube.com/vi/${viewkey}/hqdefault.jpg`}
+                src={`https://img.youtube.com/vi/${viewkey()}/hqdefault.jpg`}
                 alt="YouTube Thumbnail"
                 class="absolute inset-0 w-full h-full object-cover"
             />

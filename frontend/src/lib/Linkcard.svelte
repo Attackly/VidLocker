@@ -7,8 +7,9 @@
 
     let validation = $derived(() => {
         if (url.length === 0) {
-            return "";        }
-        if (VALID_URL_LENGTHS.includes(url.length)) {
+            return "";
+        }
+        if (VALID_URL_LENGTHS.includes(url.length) || url.length > VALID_URL_LENGTHS[VALID_URL_LENGTHS.length - 1]) {
             return "input-success";
         }
         return "input-error";
@@ -17,7 +18,6 @@
     $effect(() => {
         if (validation() === "input-success") {
             link.set(url);
-            console.log("Link store updated with:", url);
         }
     });
 

@@ -1,18 +1,9 @@
-use regex::Regex;
-use reqwest::Client;
-use serde::Deserialize;
-use std::error::Error;
-use std::time::Duration;
-use tracing::error;
-use crate::structs::video::Video;
 use chrono::{DateTime, Utc};
 use reqwest;
 use serde::Serialize;
 use serde_json::Value;
 use std::env;
 use rustypipe::client::RustyPipe;
-use rustypipe::model::richtext::ToPlaintext;
-use rustypipe::model::traits::YtEntity;
 
 pub fn get_mode() -> String {
     if env::var("YT_API_KEY").is_err() {
@@ -28,17 +19,25 @@ pub async fn get_title(viewkey: &str) -> Option<VideoResp> {
         Err(_) => (),
     };
 
-    let rp = RustyPipe::new().query().video_details(viewkey).await.unwrap();
 
-    Some(VideoResp {
-        viewkey: viewkey.to_string(),
-        published_at: None,
-        channel_id: None,
-        title: Some(rp.name),
-        description: Some(rp.description.to_plaintext()),
-        channel_name: Some(rp.channel.channel_name()?.to_string()),
-        tags: None,
-    })
+    let rp = RustyPipe::new();
+    return match rp.query().player(viewkey).await {
+        Ok(player) => {
+            let details = player.details;
+            Some(VideoResp {
+                viewkey: viewkey.to_string(),
+                published_at: None,
+                channel_id: None,
+                title: Some(details.name?),
+                description: Some(details.description?),
+                channel_name: Some(details.channel_name?),
+                tags: None,
+            })
+        }
+        Err(_) => {
+            None
+        }
+    }
 }
 
 async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {

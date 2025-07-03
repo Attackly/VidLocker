@@ -23,20 +23,19 @@ use tower::service_fn;
 use axum::{
     Router,
     body::Body,
-    http::{Method, Request},
+    http::Request,
     routing::{delete, get, post, put},
 };
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 use tokio::time::sleep;
-use tower_http::cors::{Any, CorsLayer};
 use tracing::{debug, error, info};
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt().init();
 
-    let handle_count = 6;
+    let handle_count = 1;
     debug!("handle_count = {}", handle_count);
     let idle_time = 60;
     debug!("idle_time = {}", idle_time);
