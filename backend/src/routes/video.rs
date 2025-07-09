@@ -1,3 +1,4 @@
+use axum::extract::State;
 use crate::func::video::{download_video_simple_ydl, write_db_entry};
 use crate::routes::responses::DefaultResponse;
 use axum::http::StatusCode;
@@ -12,7 +13,10 @@ pub struct VideoRequest {
 }
 
 #[debug_handler]
-pub async fn simple_download_handler(Json(payload): Json<VideoRequest>) -> Json<DefaultResponse> {
+pub async fn simple_download_handler(
+    State(state): State<crate::AppState>,
+    Json(payload): Json<VideoRequest>
+) -> Json<DefaultResponse> {
     if payload.url.len() != 11 {
         match Url::parse(&payload.url) {
             Ok(_) => {}
@@ -31,7 +35,7 @@ pub async fn simple_download_handler(Json(payload): Json<VideoRequest>) -> Json<
             default_path
         });
         if std::env::var("MODE").unwrap_or("direct".to_string()) == "queue" {
-            write_db_entry(&payload.url).await;
+            write_db_entry(&payload.url, state).await;
         } else {
             download_video_simple_ydl(payload.url, path).await;
         }

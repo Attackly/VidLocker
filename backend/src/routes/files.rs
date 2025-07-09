@@ -26,32 +26,17 @@ pub async fn create_dir_handler(Json(payload): Json<PathRequest>) -> Response {
                 status: 200,
                 message: "Path has been created".to_string(),
             }),
-        )
-            .into_response(),
-        Err(1) => (
-            StatusCode::BAD_REQUEST,
-            Json(DefaultResponse {
-                status: 403,
-                message: "Illegal Path".to_string(),
-            }),
-        )
-            .into_response(),
-        Err(2) => (
-            StatusCode::BAD_REQUEST,
-            Json(DefaultResponse {
-                status: 403,
-                message: "Error Creating Path".to_string(),
-            }),
-        )
-            .into_response(),
-        _ => (
-            StatusCode::BAD_REQUEST,
-            Json(DefaultResponse {
-                status: 500,
-                message: "This error cant appear".to_string(),
-            }),
-        )
-            .into_response(),
+        ).into_response(),
+        Err(e) => match e.kind() {
+            std::io::ErrorKind::InvalidFilename => {
+                (StatusCode::BAD_REQUEST,
+                Json(DefaultResponse {
+                    status: 403,
+                    message: "Illegal Path".to_string(),
+                })).into_response()
+            }
+            e => (StatusCode::INTERNAL_SERVER_ERROR, Json(DefaultResponse{ status: StatusCode::BAD_REQUEST.as_u16(), message: e.to_string()})).into_response() 
+        }
     }
 }
 

@@ -45,7 +45,7 @@
                 const response = await fetch('/api/yt/getTitle', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: key }) // Use key
+                    body: JSON.stringify({ url: key })
                 });
 
                 if (!response.ok) throw new Error('API request failed');
@@ -70,9 +70,7 @@
     });
 </script>
 
-<div
-    class="sm:w-3/4 lg:w-1/2 mt-5 p-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative"
->
+<div class="sm:w-3/4 lg:w-1/2 mt-5 p-3 text-primary rounded-lg overflow-hidden shadow-lg card-bg relative">
     {#if video.title != ""}
         <h2 class="text-lg font-bold">{video.title}</h2>
     {:else}

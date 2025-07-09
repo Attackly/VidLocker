@@ -1,18 +1,31 @@
 use std::fs;
+use std::io::ErrorKind::InvalidFilename;
 use std::path::PathBuf;
+use tracing::{debug, info, warn};
+
 // TODO I dont like this error handling. Find a way to fix this
-pub async fn dir_create<'a>(path: String) -> Result<&'a str, u8> {
+pub async fn dir_create<'a>(path: String) -> Result<&'a str, std::io::Error> {
+    debug!("Creating dir: {}", path);
     // Prevent someone from creating a Dir using ./../../../../Somewhere
     if path.find("..").is_some() {
-        return Err(1);
+        return Err(std::io::Error::new(InvalidFilename, path));
     }
-    let path = PathBuf::from("output/".to_owned() + &*path);
+    let pathbuf = PathBuf::from("output/".to_owned() + &*path);
 
-    match fs::create_dir_all(path) {
-        Ok(_) => Ok("Dir Created"),
-        Err(_) => Err(2),
+    //if pathbuf.
+
+    match fs::create_dir_all(pathbuf) {
+        Ok(_) => {
+            info!("Created dir: {}", path);
+            Ok("Dir Created")
+        },
+        Err(e) => {
+            warn!("Could not create dir: {path} | Error message: {e}");
+            Err(e)
+        },
     }
 }
+
 
 pub async fn dir_delete<'a>(path: String) -> Result<&'a str, u8> {
     // Prevent someone from deleting somewhere above the output directory
@@ -40,12 +53,6 @@ pub async fn get_dir_size(path: String) -> Option<u64> {
         Err(_) => None,
     }
 }
-
-//noinspection GrazieInspection
-/// List files in a directory
-/// Arg: path - PathBuf
-/// Return: Result<Vec<FileEntry>, u8>
-/// 1: Contains a ..
 
 #[cfg(test)]
 mod tests {

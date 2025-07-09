@@ -1,10 +1,9 @@
 use std::env::current_dir;
-use sqlx::postgres::PgPoolOptions;
 use std::path::PathBuf;
 use std::thread;
 use tracing::{error, info};
 use youtube_dl::YoutubeDl;
-
+use crate::AppState;
 use crate::structs::video::Video;
 
 pub async fn download_video_simple_ydl(link: String, path: String) {
@@ -19,25 +18,20 @@ pub async fn download_video_simple_ydl(link: String, path: String) {
     return;
 }
 
-pub async fn write_db_entry(link: &String) {
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = PgPoolOptions::new()
-        .max_connections(1)
-        .connect(&database_url)
-        .await
-        .expect("Failed to connect to database");
+pub async fn write_db_entry(link: &String,  state: AppState) {
 
     let url: Vec<&str> = { link.split("?v=").collect() };
 
     let res = Video::from_yt_viewkey(url[1].to_string());
 
-    let id = res.to_database(&pool).await;
+    let mut conn = state.db_pool.acquire().await.unwrap();
+    let id = res.to_database(&mut conn).await;
 
     let queue_res = sqlx::query!(
         "INSERT INTO queue (video_id, added_by) VALUES ($1, 1)",
         id.unwrap()
     )
-    .execute(&pool)
+    .execute(&mut *conn)
     .await;
 
     match queue_res {

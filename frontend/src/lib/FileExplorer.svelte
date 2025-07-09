@@ -12,11 +12,11 @@
     error: null as string | null,
   });
   let version = $state(0);
-  let currentDirArray = $state(["/"]);
 
   let breadcrumbs = $derived(() => {
     const parts = currentDir.split("/").filter((p) => p);
     let path = "";
+    // Build the cumulative path for each part
     return parts.map((part) => {
       path += `/${part}`;
       return { name: part, path };
@@ -58,7 +58,12 @@
   });
 
   function navigateTo(path: string) {
-    currentDir = path;
+    // Clean up path to prevent double slashes
+    currentDir = path.replace(/\/+/g, '/');
+    // Prevent trailing slash unless it's the root
+    if (currentDir !== '/' && currentDir.endsWith('/')) {
+        currentDir = currentDir.slice(0, -1);
+    }
   }
 
   async function deleteItem(name: string) {
@@ -105,37 +110,35 @@
     </button>
   </div>
   {#if isOpen}
+    <!-- BREADCRUMB SECTION: Now using the derived 'breadcrumbs' store -->
     <ol
       class="flex w-full flex-wrap items-center rounded-md px-4 py-2 text-primary text-lg"
     >
       <li
         class="flex cursor-pointer items-center transition-colors duration-300 hover:text-slate-800 text-primary text-lg"
       >
-        <button type="button" onclick={() => navigateTo("/")}> / </button>
+        <button type="button" onclick={() => navigateTo("/")}> Home </button>
       </li>
-      {#each currentDirArray as dir}
-        {#if dir != "" && dir != null && dir != undefined && dir != "/"}
-          <li
-            class="flex cursor-pointer items-center transition-colors duration-300 hover:text-slate-800 text-primary text-lg"
-          >
-            <span class="pointer-events-none mx-2 text-primary text-lg">
-              >
-            </span>
-            <button type="button" onclick={() => navigateTo(dir)}>
-              {dir}
-            </button>
-          </li>
-        {/if}
+      {#each breadcrumbs() as breadcrumb}
+        <li
+          class="flex cursor-pointer items-center transition-colors duration-300 hover:text-slate-800 text-primary text-lg"
+        >
+          <span class="pointer-events-none mx-2 text-primary text-lg">
+            &gt;
+          </span>
+          <button type="button" onclick={() => navigateTo(breadcrumb.path)}>
+            {breadcrumb.name}
+          </button>
+        </li>
       {/each}
     </ol>
+
     {#if files.loading}
       <div class="p-4 text-center">Loading...</div>
     {:else if files.error}
       <div class="p-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
         Error: {files.error}
       </div>
-
-      <!-- TODO CHANGE THIS BACK --->
     {:else if files.data.length > 0}
       <table class="w-full">
         <thead class="border-b">
@@ -147,7 +150,6 @@
           </tr>
         </thead>
         <tbody>
-          <!-- TODO CHANGE THIS BACK --->
           {#each files.data as row}
             <tr class="row-bg-1 odd:row-bg-2">
               {#if row.is_directory == false}
@@ -156,6 +158,8 @@
                     class="svg-primary"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
+                    width="35"
+                    height="35"
                     ><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                     <path
                       d="M0 96C0 60.7 28.7 32 64 32l384 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64L0 96zM48 368l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm368-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM48 240l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm368-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM48 112l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16L64 96c-8.8 0-16 7.2-16 16zM416 96c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM160 128l0 64c0 17.7 14.3 32 32 32l128 0c17.7 0 32-14.3 32-32l0-64c0-17.7-14.3-32-32-32L192 96c-17.7 0-32 14.3-32 32zm32 160c-17.7 0-32 14.3-32 32l0 64c0 17.7 14.3 32 32 32l128 0c17.7 0 32-14.3 32-32l0-64c0-17.7-14.3-32-32-32l-128 0z"
@@ -172,16 +176,19 @@
                     class="svg-primary"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 512 512"
+                    width="35"
+                    height="35"
                     ><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path
                       d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"
                     />
                   </svg>
                 </td>
                 <td>
+                  <!-- FOLDER NAVIGATION: Correctly constructs the new path -->
                   <button
                     class="rounded-full py-2 px-4 cursor-pointer"
                     type="button"
-                    onclick={() => navigateTo(row.name)}
+                    onclick={() => navigateTo(`${currentDir}/${row.name}`)}
                   >
                     {row.name}
                   </button>

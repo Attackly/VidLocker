@@ -47,7 +47,7 @@
     <button
         on:click={download}
         type="button"
-        class="button-bg w-full mb-30 rounded text-primary py-2"
+        class="button-bg sm:w-3/4 lg:w-1/2 mb-30 rounded text-primary py-2"
     >
         Download
     </button>

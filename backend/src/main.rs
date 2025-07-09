@@ -3,6 +3,7 @@ mod func;
 mod queue;
 mod routes;
 mod structs;
+use sqlx::PgPool;
 use crate::{
     func::preperations::{create_output_dir, prepare_database},
     queue::queue_worker::queue_worker,
@@ -20,32 +21,52 @@ use std::{convert::Infallible, net::SocketAddr};
 use tokio::fs;
 use tower::service_fn;
 
-use axum::{
-    Router,
-    body::Body,
-    http::Request,
-    routing::{delete, get, post, put},
-};
+use axum::{Router, body::Body, http::Request, routing::{delete, get, post, put}};
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 use tokio::time::sleep;
-use tracing::{debug, error, info};
+use tower_http::trace::TraceLayer;
+use tracing::{debug, error, info, Level};
+use tracing::level_filters::LevelFilter;
+use tracing_subscriber::EnvFilter;
+
+#[derive(Clone)]
+struct AppState {
+    db_pool: PgPool,
+}
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt().init();
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::builder()
+                                 .with_default_directive(LevelFilter::WARN.into())
+                                 .from_env_lossy())
+        .json()
+        .with_current_span(true)
+        .with_span_list(true)
+        .init();
 
     let handle_count = 1;
     debug!("handle_count = {}", handle_count);
     let idle_time = 60;
     debug!("idle_time = {}", idle_time);
 
-    create_output_dir();
+    create_output_dir().await;
     info!("create_output_dir finished");
     prepare_database().await;
     info!("prepare_database finished");
 
+
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await
+        .expect("Failed to create database pool");
+
+    let app_state = AppState { db_pool: pool };
+
     let queue_pool = PgPoolOptions::new()
         .max_connections(handle_count)
         .connect(&database_url)
@@ -78,7 +99,10 @@ async fn main() {
     let static_files =
         tower_http::services::ServeDir::new("dist").not_found_service(service_fn(fallback_handler));
 
+    info!("Create Static file Server");
+    
     let app = Router::new()
+        .layer(TraceLayer::new_for_http().make_span_with(tower_http::trace::DefaultMakeSpan::new().level(Level::INFO)).on_response(tower_http::trace::DefaultOnResponse::new().level(Level::INFO)))
         .fallback_service(static_files)
         .route("/test", get(check_system_handler))
         .route("/api/downloadVideo", post(simple_download_handler))
@@ -89,8 +113,8 @@ async fn main() {
         .route("/api/files/download", get(download_file_handler))
         .route("/api/yt/mode", get(mode_handler))
         .route("/api/yt/getTitle", post(title_handler))
-        .route("/api/files/dir_create", put(create_dir_handler));
-    // .layer(cors);
+        .route("/api/files/dir_create", put(create_dir_handler)).with_state(app_state);
+    
     
     let sslconfig = RustlsConfig::from_pem_file(
         "certs/cert.crt",

@@ -1,9 +1,11 @@
 use chrono::{DateTime, Utc};
 use reqwest;
-use serde::Serialize;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use serde_json::{from_str, Value};
 use std::env;
-use rustypipe::client::RustyPipe;
+use std::process::{Command, Stdio};
+use tokio::time::Instant;
+use tracing::{debug, error, info};
 
 pub fn get_mode() -> String {
     if env::var("YT_API_KEY").is_err() {
@@ -19,25 +21,34 @@ pub async fn get_title(viewkey: &str) -> Option<VideoResp> {
         Err(_) => (),
     };
 
-
-    let rp = RustyPipe::new();
-    return match rp.query().player(viewkey).await {
-        Ok(player) => {
-            let details = player.details;
-            Some(VideoResp {
-                viewkey: viewkey.to_string(),
-                published_at: None,
-                channel_id: None,
-                title: Some(details.name?),
-                description: Some(details.description?),
-                channel_name: Some(details.channel_name?),
-                tags: None,
-            })
-        }
-        Err(_) => {
-            None
-        }
+    let start = Instant::now();
+    let output = Command::new("yt-dlp").arg("-j").arg(&viewkey).stdout(Stdio::piped()).stderr(Stdio::piped()).output().unwrap();
+    if !output.status.success() {
+        error!("The Error returend form yt-dlp: {:?}", output.stderr);
+        return None
     }
+
+    let json_output = String::from_utf8(output.stdout).unwrap();
+
+    let yt_dlp_details: VideoDetails = from_str(&json_output).unwrap();
+
+    let upload_date = yt_dlp_details.timestamp
+        .and_then(|ts| DateTime::from_timestamp(ts, 0));
+
+    let final_details = VideoResp {
+        viewkey: viewkey.to_string(),
+        published_at: upload_date,
+        channel_id: None,
+        title: Some(yt_dlp_details.title),
+        description: Some(yt_dlp_details.description),
+        channel_name: Some(yt_dlp_details.channel),
+        tags: Some(yt_dlp_details.tags),
+    };
+    let duration = start.elapsed();
+    debug!("The VideoResp {:?}", final_details);
+    debug!("yt-dlp needed this time to fetch: {:?}", duration);
+    error!("Test 2");
+    Some(final_details)
 }
 
 async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {
@@ -48,11 +59,9 @@ async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {
 
     let response = reqwest::get(&url).await.unwrap();
 
-    // Parse the response as a dynamic JSON
     let json: Value = response.json().await.unwrap();
     println!("{:?}", json);
 
-    // Access specific fields dynamically (example: video title)
     if let Some(items) = json.get("items") {
         if let Some(first_item) = items.get(0) {
             if let Some(snippet) = first_item.get("snippet") {
@@ -63,6 +72,8 @@ async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {
         }
     }
 
+
+    info!("Datum was sollte: {:?}", json["items"][0]["snippet"]["publishedAt"]);
     let parsed_date = Some(
         DateTime::parse_from_rfc3339(json["items"][0]["snippet"]["publishedAt"].as_str().unwrap())
             .unwrap()
@@ -86,7 +97,6 @@ async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {
         .map(|t| t.replace(r#"\""#, r#"""#))
         .unwrap_or_else(|| "Default Title".to_string());
 
-    // Think what to do off this.
     Some(VideoResp {
         viewkey: viewkey.to_owned(),
         published_at: parsed_date,
@@ -98,8 +108,8 @@ async fn get_title_api(viewkey: &str, key: String) -> Option<VideoResp> {
     })
 }
 
-
 #[derive(Serialize)]
+#[derive(Debug)]
 pub struct VideoResp {
     viewkey: String,
     published_at: Option<DateTime<Utc>>,
@@ -108,4 +118,13 @@ pub struct VideoResp {
     pub description: Option<String>,
     pub channel_name: Option<String>,
     pub tags: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct VideoDetails {
+    title: String,
+    description: String,
+    channel: String,
+    tags: Vec<String>,
+    timestamp: Option<i64>
 }
